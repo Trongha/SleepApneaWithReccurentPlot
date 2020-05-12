@@ -1,0 +1,8 @@
+{
+    "numPointPerTimeSeries": 200,
+    "dim": 6,
+    "tau": 10,
+    "epsilon": 10,
+    "distanceNorm": 2,
+    "lambda": 15
+}
