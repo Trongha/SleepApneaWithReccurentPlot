@@ -23,7 +23,6 @@ def convert2StatePhase(v, dim, tau, returnType='array'):
         return np.array([v[start: start + (dim - 1) * tau + 1: tau] for start in range(len(v) - (dim - 1) * tau)])
 
 
-
 def makeRpMatrix(TimeSeries, dim=5, tau=2, epsilon=0.09, distNorm=1):
     # tách statephases
     statePhase = convert2StatePhase(TimeSeries, dim, tau, 'np.array')
@@ -76,6 +75,22 @@ def crossRecurrencePlots(windowTitle, dataMatrixBinary, keyDot=1, dotSize=1, myT
     return scatterGraph(windowTitle, dataX, dataY, dotSize, myTitle, labelX, labelY)
 
 
+def convertSetNumber(Set, minOfSet=0, maxOfSet=0, newMinOfSet=0, newMaxOfSet=1):
+    if (minOfSet == 0):
+        minOfSet = min(Set)
+    if (maxOfSet == 0):
+        maxOfSet = max(Set)
+
+    print("min: ", minOfSet)
+    print("max: ", maxOfSet)
+
+    if (maxOfSet == minOfSet):
+        ratio = 0
+    else:
+        ratio = (newMaxOfSet - newMinOfSet) / (maxOfSet - minOfSet)
+    return [((x - minOfSet) * ratio + newMinOfSet) for x in Set]
+
+
 if __name__ == '__main__':
     print("RecurrentPlot.py run main")
     trainDataOrigin = np.load(trainDataFile, allow_pickle=True)
@@ -99,7 +114,7 @@ if __name__ == '__main__':
     # for i, term in enumerate(rriData):
     #     print("{} len: {} label: {}".format(i, len(term), label[i]))
     for i in range(10):
-        rri = rriData[i]
+        rri = convertSetNumber(rriData[i])
 
         binaryMatrix = makeRpMatrix(rri, dim, tau, e, disNorm)
         print(binaryMatrix)
