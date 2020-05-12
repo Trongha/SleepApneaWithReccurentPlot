@@ -104,4 +104,4 @@ if __name__ == '__main__':
         binaryMatrix = makeRpMatrix(rri, dim, tau, e, disNorm)
         print(binaryMatrix)
         x = crossRecurrencePlots("testPlot", binaryMatrix)
-        x.show()
+        plt.show()
