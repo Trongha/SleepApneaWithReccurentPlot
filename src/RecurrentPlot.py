@@ -5,8 +5,9 @@ import json
 configFile = '../config.json'
 
 res = '../res/train/'
-trainDataFile = res + 'train_input.npy'
-trainLabelFile = res + 'train_label.npy'
+res = '../output/'
+trainDataFile = res + 'my_train_input.npy'
+trainLabelFile = res + 'my_train_label.npy'
 
 
 def convert2StatePhase(v, dim, tau, returnType='array'):
@@ -53,8 +54,6 @@ def scatterGraph(windowTitle, dataX, dataY, dotSize=0, myTitle='prettyGirl', lab
     return f
 
 
-# plt.show()
-
 # vẽ biểu đồ crp từ ma trận 01
 def crossRecurrencePlots(windowTitle, dataMatrixBinary, keyDot=1, dotSize=1, myTitle='prettyGirl', labelX='xxxxx',
                          labelY='yyyyy'):
@@ -91,32 +90,82 @@ def convertSetNumber(Set, minOfSet=0, maxOfSet=0, newMinOfSet=0, newMaxOfSet=1):
     return [((x - minOfSet) * ratio + newMinOfSet) for x in Set]
 
 
+def readData(dataFile, labelFile):
+    trainDataOrigin = np.load(dataFile, allow_pickle=True)
+    labelOrigin = np.load(labelFile, allow_pickle=True)
+
+    trainData = []
+    label = []
+
+    curId = None
+    curContainer = []
+    curListLabel = []
+    for i, originData in enumerate(trainDataOrigin):
+        rri = originData[0]
+        id = originData[1]
+        if id == curId:
+            curContainer = np.append(curContainer, np.array(rri))
+            curListLabel += [labelOrigin[i] for numberOf in range(len(rri))]
+        else:
+            if curId != None:
+                trainData.append(curContainer)
+                label.append(curListLabel)
+
+            curId = id
+            curContainer = rri
+            curListLabel = [labelOrigin[i] for numberOf in range(len(rri))]
+            print("curId: ", curId)
+
+    trainData.append(curContainer)
+    label.append(curListLabel)
+    return trainData, label
+
+
 if __name__ == '__main__':
     print("RecurrentPlot.py run main")
-    trainDataOrigin = np.load(trainDataFile, allow_pickle=True)
-    label = np.load(trainLabelFile, allow_pickle=True)
-    # print(trainDataOrigin[0])
+    trainData, label = readData(trainDataFile, trainLabelFile)
+    print(trainData)
+    print(len(trainData))
+    print(label)
+    print(len(label))
 
-    rriData = [(data[0] - np.min(data[0])) for data in trainDataOrigin]
-    print('lenData: ', len(rriData))
-    print('lenLabel: ', len(label))
+    for i, data in enumerate(trainData):
+        print('len of item ', i, len(data), len(label[i]))
 
-    with open(configFile) as f:
-        config = json.load(f)
-    print('config: ', config)
-    e = config["epsilon"]
-    lamb = config["lambda"]
-    disNorm = config["distanceNorm"]
-    dim = config['dim']
-    tau = config["tau"]
-    numPoint = config["numPointPerTimeSeries"]
-
-    # for i, term in enumerate(rriData):
-    #     print("{} len: {} label: {}".format(i, len(term), label[i]))
-    for i in range(10):
-        rri = convertSetNumber(rriData[i])
-
-        binaryMatrix = makeRpMatrix(rri, dim, tau, e, disNorm)
-        print(binaryMatrix)
-        x = crossRecurrencePlots("testPlot", binaryMatrix)
-        plt.show()
+    #
+    # trainDataOrigin = np.load(trainDataFile, allow_pickle=True)
+    # label = np.load(trainLabelFile, allow_pickle=True)
+    # # print(trainDataOrigin[0])
+    # print("my")
+    # print(trainDataOrigin[1000])
+    # print(trainDataOrigin[1000][1])
+    # print(trainDataOrigin[0].shape)
+    # print(len(trainDataOrigin[0]))
+    # print(trainDataOrigin.shape)
+    #
+    # print("my")
+    # rriData = [(data[0] - np.min(data[0])) for data in trainDataOrigin]
+    # print('lenData: ', len(rriData))
+    # print('lenLabel: ', len(label))
+    #
+    # with open(configFile) as f:
+    #     config = json.load(f)
+    # print('config: ', config)
+    # e = config["epsilon"]
+    # lamb = config["lambda"]
+    # disNorm = config["distanceNorm"]
+    # dim = config['dim']
+    # tau = config["tau"]
+    # numPoint = config["numPointPerTimeSeries"]
+    #
+    # # for i, term in enumerate(rriData):
+    # #     print("{} len: {} label: {}".format(i, len(term), label[i]))
+    #
+    # for i in range(10):
+    #     # print('sum: ', rriData[i].sum())
+    #     rri = convertSetNumber(rriData[i])
+    #     binaryMatrix = makeRpMatrix(rri, dim, tau, e, disNorm)
+    #     # print(binaryMatrix)
+    #     x = crossRecurrencePlots("testPlot", binaryMatrix)
+    #     # plt.interactive(True)
+    #     plt.show()
