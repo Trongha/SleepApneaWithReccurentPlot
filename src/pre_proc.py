@@ -6,6 +6,8 @@ from scipy import interpolate
 from tqdm import tqdm
 import os
 
+import config as config
+
 FS = 100.0
 
 
@@ -118,11 +120,11 @@ for dataIndex, dataName in enumerate(trainDataName):
         rriByMs = rri.astype('float') / FS * 1000.0
 
         if apnAnn[0] == 'N': # Normal
-            label = 0.0
+            label = config.NORMAL_LABEL
         elif apnAnn[0] == 'A': # Apnea
-            label = 1.0
+            label = config.APNEA_LABEL
         else:
-            label = 2.0
+            label = config.NONE_LABEL
 
         if (index in [1, 2, 3, 4, 5, numberOfLabel-1]):
             print(dataIndex, rriByMs)

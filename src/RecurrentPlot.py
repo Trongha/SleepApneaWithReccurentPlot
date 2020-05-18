@@ -1,16 +1,17 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import config
 import json
 
-configFile = '../config.json'
+import src.MyUtil as myUtil
 
-res = '../res/train/'
+# res = '../res/train/'
 res = '../output/'
 trainDataFile = res + 'my_train_input.npy'
 trainLabelFile = res + 'my_train_label.npy'
 
 
-def convert2StatePhase(v, dim, tau, returnType='array'):
+def convert2StatePhase(timeSeries, dim, tau, returnType='array'):
     # v: vecto
     # dim là số chiều (số phần tử)
     # tau là bước nhảy
@@ -18,15 +19,17 @@ def convert2StatePhase(v, dim, tau, returnType='array'):
     #	array: trả về python array
     #	np.array: trả về mảng numpy
     if returnType == 'array':
-        return [v[start: start + (dim - 1) * tau + 1: tau] for start in range(len(v) - (dim - 1) * tau)]
+        return [timeSeries[start: start + (dim - 1) * tau + 1: tau]
+                for start in range(len(timeSeries) - (dim - 1) * tau)]
     if returnType == 'np.array':
         import numpy as np
-        return np.array([v[start: start + (dim - 1) * tau + 1: tau] for start in range(len(v) - (dim - 1) * tau)])
+        return np.array([timeSeries[start: start + (dim - 1) * tau + 1: tau]
+                         for start in range(len(timeSeries) - (dim - 1) * tau)])
 
 
-def makeRpMatrix(TimeSeries, dim=5, tau=2, epsilon=0.09, distNorm=1):
+def makeRpMatrix(timeSeries, dim=5, tau=2, epsilon=0.09, distNorm=2):
     # tách statephases
-    statePhase = convert2StatePhase(TimeSeries, dim, tau, 'np.array')
+    statePhase = convert2StatePhase(timeSeries, dim, tau, 'np.array')
 
     from scipy.spatial.distance import cdist
     # rDist là ma trận khoảng cách
@@ -50,16 +53,15 @@ def scatterGraph(windowTitle, dataX, dataY, dotSize=0, myTitle='prettyGirl', lab
     plt.title(myTitle)
     plt.xlabel(labelX)
     plt.ylabel(labelY)
-    # plt.show()
     return f
 
 
 # vẽ biểu đồ crp từ ma trận 01
 def crossRecurrencePlots(windowTitle, dataMatrixBinary, keyDot=1, dotSize=1, myTitle='prettyGirl', labelX='xxxxx',
-                         labelY='yyyyy'):
+                         labelY='yyyyy', showPlot=False, pathSaveFigure=None):
     dataX = []
     dataY = []
-    hightOfData = len(dataMatrixBinary);
+    hightOfData = len(dataMatrixBinary)
 
     print("crossRecurrencePlots()_len: ", hightOfData)
     for y in range(hightOfData):
@@ -71,25 +73,31 @@ def crossRecurrencePlots(windowTitle, dataMatrixBinary, keyDot=1, dotSize=1, myT
             # vẽ trục y từ dưới lên
             # dataY.append(y);
 
-    return scatterGraph(windowTitle, dataX, dataY, dotSize, myTitle, labelX, labelY)
+    figure = scatterGraph(windowTitle, dataX, dataY, dotSize, myTitle, labelX, labelY)
+    if showPlot:
+        plt.show()
+    if pathSaveFigure is not None:
+        plt.savefig(pathSaveFigure, dpi=200)
+    return figure
 
 
 def convertSetNumber(Set, minOfSet=0, maxOfSet=0, newMinOfSet=0, newMaxOfSet=1):
-    if (minOfSet == 0):
+    if minOfSet == 0:
         minOfSet = min(Set)
-    if (maxOfSet == 0):
+    if maxOfSet == 0:
         maxOfSet = max(Set)
 
     print("min: ", minOfSet)
     print("max: ", maxOfSet)
 
-    if (maxOfSet == minOfSet):
+    if maxOfSet == minOfSet:
         ratio = 0
     else:
         ratio = (newMaxOfSet - newMinOfSet) / (maxOfSet - minOfSet)
     return [((x - minOfSet) * ratio + newMinOfSet) for x in Set]
 
 
+# ============================== read data =================================#
 def readData(dataFile, labelFile):
     trainDataOrigin = np.load(dataFile, allow_pickle=True)
     labelOrigin = np.load(labelFile, allow_pickle=True)
@@ -107,7 +115,7 @@ def readData(dataFile, labelFile):
             curContainer = np.append(curContainer, np.array(rri))
             curListLabel += [labelOrigin[i] for numberOf in range(len(rri))]
         else:
-            if curId != None:
+            if curId is not None:
                 trainData.append(curContainer)
                 label.append(curListLabel)
 
@@ -121,51 +129,49 @@ def readData(dataFile, labelFile):
     return trainData, label
 
 
+def getLabel(labels):
+    unique, counts = np.unique(labels, return_counts=True)
+    dictUnique = dict(zip(unique, counts))
+    if 1 in dictUnique.keys():
+        print('unique has apnea', dictUnique)
+    if 1 in dictUnique.keys() and dictUnique[1] >= 0.5 * len(labels):
+        print('label : apnea')
+        return 1
+    return 0.0
+
+
+# ============================================================================#
+
 if __name__ == '__main__':
     print("RecurrentPlot.py run main")
+    # ============================== Load Config =================================#
+    winSize = config.RR_PER_RECURRENCE_PLOTS
+    dim = config.DIMENSION
+    tau = config.TAU
+    e = config.EPSILON
+    disNorm = config.DISTANCE_NORM
+    # ============================================================================#
+
     trainData, label = readData(trainDataFile, trainLabelFile)
-    print(trainData)
     print(len(trainData))
-    print(label)
     print(len(label))
+    myUtil.createFolder(config.SAVE_RP_FOLDER)
+    for i_data, data in enumerate(trainData):
+        print('len of item ', i_data, len(data), len(label[i_data]))
+        if len(data) > winSize:
+            for start in range(len(data) - winSize):
+                end = start + winSize
+                timeSeries = data[start:end]
+                thisLabel = getLabel(label[i_data][start:end])
+                timeSeries = convertSetNumber(timeSeries)
+                binaryMatrix = makeRpMatrix(timeSeries, dim, tau, e, disNorm)
+                # print(binaryMatrix)
 
-    for i, data in enumerate(trainData):
-        print('len of item ', i, len(data), len(label[i]))
-
-    #
-    # trainDataOrigin = np.load(trainDataFile, allow_pickle=True)
-    # label = np.load(trainLabelFile, allow_pickle=True)
-    # # print(trainDataOrigin[0])
-    # print("my")
-    # print(trainDataOrigin[1000])
-    # print(trainDataOrigin[1000][1])
-    # print(trainDataOrigin[0].shape)
-    # print(len(trainDataOrigin[0]))
-    # print(trainDataOrigin.shape)
-    #
-    # print("my")
-    # rriData = [(data[0] - np.min(data[0])) for data in trainDataOrigin]
-    # print('lenData: ', len(rriData))
-    # print('lenLabel: ', len(label))
-    #
-    # with open(configFile) as f:
-    #     config = json.load(f)
-    # print('config: ', config)
-    # e = config["epsilon"]
-    # lamb = config["lambda"]
-    # disNorm = config["distanceNorm"]
-    # dim = config['dim']
-    # tau = config["tau"]
-    # numPoint = config["numPointPerTimeSeries"]
-    #
-    # # for i, term in enumerate(rriData):
-    # #     print("{} len: {} label: {}".format(i, len(term), label[i]))
-    #
-    # for i in range(10):
-    #     # print('sum: ', rriData[i].sum())
-    #     rri = convertSetNumber(rriData[i])
-    #     binaryMatrix = makeRpMatrix(rri, dim, tau, e, disNorm)
-    #     # print(binaryMatrix)
-    #     x = crossRecurrencePlots("testPlot", binaryMatrix)
-    #     # plt.interactive(True)
-    #     plt.show()
+                title = 'N' if thisLabel == config.NORMAL_LABEL else 'A'
+                title += '---record-{}.start-{}.end-{}'.format(i_data, start, end)
+                pathSave = config.SAVE_RP_FOLDER + title + config.IMG_SUFFIX
+                x = crossRecurrencePlots(windowTitle=title, dataMatrixBinary=binaryMatrix,
+                                         myTitle=title, pathSaveFigure=pathSave)
+                # plt.show()
+        else:
+            print(" len of data < winSize({})".format(winSize))
