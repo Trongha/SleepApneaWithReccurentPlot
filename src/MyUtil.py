@@ -52,8 +52,8 @@ def getLabel(labels):
     dictUnique = dict(zip(unique, counts))
     apnea = config.APNEA_LABEL
     normal = config.NORMAL_LABEL
-
-    if apnea in dictUnique.keys() and dictUnique[apnea] >= 0.5 * len(labels):
+    minPercentApnea = config.MIN_PERCENT_APNEA
+    if apnea in dictUnique.keys() and dictUnique[apnea] >= minPercentApnea * len(labels):
         # print('label : apnea')
         return apnea
     return normal

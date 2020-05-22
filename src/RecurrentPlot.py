@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from tqdm import tqdm
 import config
-import json
 
 import src.MyUtil as myUtil
 
@@ -43,25 +43,23 @@ def makeRpMatrix(timeSeries, dim=5, tau=2, epsilon=0.09, distNorm=2, isFixedEpsi
     if isFixedEpsilon:
         rBinary = np.array((rDist < epsilon) + 0)
         return rBinary
-
-    for i in range(rDist.shape[0]):
-        print('--------------------------------')
-        row = rDist[i]
-        rDist[i] = getBinaryByRow(row, dotRate)
-
-    return rDist
+    else:
+        for i in range(rDist.shape[0]):
+            row = rDist[i]
+            rDist[i] = getBinaryByRow(row, dotRate)
+        return rDist
 
 
 def getBinaryByRow(row, dotRate=0.2):
-    print('origin: ', row)
     rowClone = np.array(row)
-    epsilon = rowClone[int(dotRate*len(row))]
+    # print('index: ', -int(dotRate * len(row)))
+    row.sort()
+    epsilon = row[int(dotRate * len(row))]
     return (rowClone < epsilon) + 0
 
 
-
 # vẽ biểu đồ chấm từ mảng x và mảng y
-def scatterGraph(windowTitle, dataX, dataY, dotSize=0, myTitle='prettyGirl', labelX='xxxxx', labelY='yyyyy'):
+def scatterGraph(windowTitle, dataX, dataY, dotSize=0, myTitle='scatterGraph', labelX='xxxxx', labelY='yyyyy'):
     f = plt.figure(windowTitle)
     plt.scatter(dataX, dataY, s=dotSize)
     plt.title(myTitle)
@@ -77,7 +75,7 @@ def crossRecurrencePlots(windowTitle, dataMatrixBinary, keyDot=1, dotSize=1, myT
     dataY = []
     hightOfData = len(dataMatrixBinary)
 
-    print("crossRecurrencePlots()_len: ", hightOfData)
+    # print("crossRecurrencePlots()_len: ", hightOfData)
     for y in range(hightOfData):
         for x in range(len(dataMatrixBinary[y])):
             if dataMatrixBinary[y][x] == keyDot:
@@ -143,49 +141,51 @@ def readData(dataFile, labelFile):
     return trainData, label
 
 
-def getLabel(labels):
-    unique, counts = np.unique(labels, return_counts=True)
-    dictUnique = dict(zip(unique, counts))
-    if 1 in dictUnique.keys():
-        print('unique has apnea', dictUnique)
-    if 1 in dictUnique.keys() and dictUnique[1] >= 0.5 * len(labels):
-        print('label : apnea')
-        return 1
-    return 0.0
-
-
-# ============================================================================#
-
 if __name__ == '__main__':
     print("RecurrentPlot.py run main")
     # ============================== Load Config =================================#
     winSize = config.RR_PER_RECURRENCE_PLOTS
+    winStep = config.WIN_STEP_SIZE
     dim = config.DIMENSION
     tau = config.TAU
     e = config.EPSILON
     disNorm = config.DISTANCE_NORM
+    dotRate = config.DOT_RATE
+    isFixedEpsilon = config.IS_FIXED_EPSILON
     # ============================================================================#
 
     trainData, label = readData(trainDataFile, trainLabelFile)
     print(len(trainData))
     print(len(label))
-    myUtil.createFolder(config.FOLDER_SAVE_RP)
+
+    myUtil.createFolder(config.SAVE_NORMAL_RP)
+    myUtil.createFolder(config.SAVE_APNEA_RP)
     for i_data, data in enumerate(trainData):
         print('len of item ', i_data, len(data), len(label[i_data]))
         if len(data) > winSize:
-            for start in range(len(data) - winSize):
+            for start in tqdm(range(0, len(data) - winSize, winStep)):
                 end = start + winSize
                 timeSeries = data[start:end]
-                thisLabel = getLabel(label[i_data][start:end])
+                thisLabel = myUtil.getLabel(label[i_data][start:end])
                 timeSeries = convertSetNumber(timeSeries)
-                binaryMatrix = makeRpMatrix(timeSeries, dim, tau, e, disNorm)
-                # print(binaryMatrix)
+                binaryMatrix = makeRpMatrix(timeSeries, dim, tau, e, disNorm, isFixedEpsilon=isFixedEpsilon,
+                                            dotRate=dotRate)
+                if thisLabel == config.NORMAL_LABEL:
+                    folderSave = config.SAVE_NORMAL_RP
+                    title = 'N-'
+                else:
+                    folderSave = config.SAVE_APNEA_RP
+                    title = 'A-'
+                title += 'record-{}.start-{}.end-{}'.format(i_data, start, end)
 
-                title = 'N' if thisLabel == config.NORMAL_LABEL else 'A'
-                title += '---record-{}.start-{}.end-{}'.format(i_data, start, end)
-                pathSave = config.FOLDER_SAVE_RP + title + config.IMG_SUFFIX
-                x = crossRecurrencePlots(windowTitle=title, dataMatrixBinary=binaryMatrix,
-                                         myTitle=title, pathSaveFigure=pathSave)
+                if config.IS_SAVE_RP_BINARY:
+                    np.save(folderSave + title + '.npy', binaryMatrix)
+
+                pathSaveImage = folderSave + title + config.IMG_SUFFIX if config.IS_SAVE_RP_IMAGE else None
+
+                x = crossRecurrencePlots(windowTitle=title, dataMatrixBinary=binaryMatrix, myTitle=title,
+                                         pathSaveFigure=pathSaveImage, showPlot=config.IS_SHOW_RP)
+
                 # plt.show()
         else:
             print(" len of data < winSize({})".format(winSize))
