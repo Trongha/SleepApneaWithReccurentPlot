@@ -27,7 +27,7 @@ def convert2StatePhase(timeSeries, dim, tau, returnType='array'):
                          for start in range(len(timeSeries) - (dim - 1) * tau)])
 
 
-def makeRpMatrix(timeSeries, dim=5, tau=2, epsilon=0.09, distNorm=2):
+def makeRpMatrix(timeSeries, dim=5, tau=2, epsilon=0.09, distNorm=2, isFixedEpsilon=True, dotRate=0.2):
     # tách statephases
     statePhase = convert2StatePhase(timeSeries, dim, tau, 'np.array')
 
@@ -40,10 +40,24 @@ def makeRpMatrix(timeSeries, dim=5, tau=2, epsilon=0.09, distNorm=2):
     # x là test
     rDist = cdist(statePhase, statePhase, 'minkowski', p=distNorm)
 
-    import numpy as np
-    rBinary = np.array((rDist < epsilon) + 0)
+    if isFixedEpsilon:
+        rBinary = np.array((rDist < epsilon) + 0)
+        return rBinary
 
-    return rBinary
+    for i in range(rDist.shape[0]):
+        print('--------------------------------')
+        row = rDist[i]
+        rDist[i] = getBinaryByRow(row, dotRate)
+
+    return rDist
+
+
+def getBinaryByRow(row, dotRate=0.2):
+    print('origin: ', row)
+    rowClone = np.array(row)
+    epsilon = rowClone[int(dotRate*len(row))]
+    return (rowClone < epsilon) + 0
+
 
 
 # vẽ biểu đồ chấm từ mảng x và mảng y
@@ -87,8 +101,8 @@ def convertSetNumber(Set, minOfSet=0, maxOfSet=0, newMinOfSet=0, newMaxOfSet=1):
     if maxOfSet == 0:
         maxOfSet = max(Set)
 
-    print("min: ", minOfSet)
-    print("max: ", maxOfSet)
+    # print("min: ", minOfSet)
+    # print("max: ", maxOfSet)
 
     if maxOfSet == minOfSet:
         ratio = 0
@@ -155,7 +169,7 @@ if __name__ == '__main__':
     trainData, label = readData(trainDataFile, trainLabelFile)
     print(len(trainData))
     print(len(label))
-    myUtil.createFolder(config.SAVE_RP_FOLDER)
+    myUtil.createFolder(config.FOLDER_SAVE_RP)
     for i_data, data in enumerate(trainData):
         print('len of item ', i_data, len(data), len(label[i_data]))
         if len(data) > winSize:
@@ -169,7 +183,7 @@ if __name__ == '__main__':
 
                 title = 'N' if thisLabel == config.NORMAL_LABEL else 'A'
                 title += '---record-{}.start-{}.end-{}'.format(i_data, start, end)
-                pathSave = config.SAVE_RP_FOLDER + title + config.IMG_SUFFIX
+                pathSave = config.FOLDER_SAVE_RP + title + config.IMG_SUFFIX
                 x = crossRecurrencePlots(windowTitle=title, dataMatrixBinary=binaryMatrix,
                                          myTitle=title, pathSaveFigure=pathSave)
                 # plt.show()

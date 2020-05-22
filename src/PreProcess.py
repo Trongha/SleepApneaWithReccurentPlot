@@ -38,7 +38,7 @@ def interp_cubic_spline_qrs(qrs_index, qrs_amp, fs):
     qrs_interp = interpolate.splev(time_qrs_interp, tck, der=0)
     return time_qrs_interp, qrs_interp
 
-outPath = '../output/'
+outPath = '../res/dataPreProcess/'
 dataPath = '../res/origin/'
 trainDataName = ['a01', 'a02', 'a03', 'a04', 'a05',
                    'a06', 'a07', 'a08', 'a09', 'a10',
