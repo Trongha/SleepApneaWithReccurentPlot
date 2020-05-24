@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
 import config
-
+import src.RecurrenceQuantificationAnalysis as rqa
 import src.MyUtil as myUtil
 
 # res = '../res/train/'
@@ -94,6 +94,7 @@ def crossRecurrencePlots(windowTitle, dataMatrixBinary, keyDot=1, dotSize=1, myT
 
 
 def convertSetNumber(Set, minOfSet=0, maxOfSet=0, newMinOfSet=0, newMaxOfSet=1):
+    # Chuan hoa ve [0,1]
     if minOfSet == 0:
         minOfSet = min(Set)
     if maxOfSet == 0:
@@ -107,6 +108,13 @@ def convertSetNumber(Set, minOfSet=0, maxOfSet=0, newMinOfSet=0, newMaxOfSet=1):
     else:
         ratio = (newMaxOfSet - newMinOfSet) / (maxOfSet - minOfSet)
     return [((x - minOfSet) * ratio + newMinOfSet) for x in Set]
+
+
+def getDotOfRpBinary(rpBinary, keyDot=1):
+    dots = []
+    for row in rpBinary:
+        dots.append([i for i, x in enumerate(row) if x == keyDot])
+    return dots
 
 
 # ============================== read data =================================#
@@ -152,40 +160,82 @@ if __name__ == '__main__':
     disNorm = config.DISTANCE_NORM
     dotRate = config.DOT_RATE
     isFixedEpsilon = config.IS_FIXED_EPSILON
+
+    myLambda = config.MY_LAMBDA
     # ============================================================================#
 
-    trainData, label = readData(trainDataFile, trainLabelFile)
-    print(len(trainData))
-    print(len(label))
+    allData, allLabel = readData(trainDataFile, trainLabelFile)
+    trainData = allData[0:config.NUMBER_OF_TRAIN]
+    trainLabel = allLabel[0:config.NUMBER_OF_TRAIN]
 
-    myUtil.createFolder(config.SAVE_NORMAL_RP)
-    myUtil.createFolder(config.SAVE_APNEA_RP)
+    print(len(trainData))
+    print(len(trainLabel))
+
+    myUtil.createFolder(config.PATH_RP_TRAIN_NORMAL)
+    myUtil.createFolder(config.PATH_RP_TRAIN_APNEA)
+
+    rpNormal = []
+    rpApnea = []
+    # allRp = []
+    myUtil.createFolder(config.PATH_RP)
     for i_data, data in enumerate(trainData):
-        print('len of item ', i_data, len(data), len(label[i_data]))
+        # if i_data > 1:
+        #     break
+        print('len of item ', i_data, len(data), len(trainLabel[i_data]))
         if len(data) > winSize:
+            allRp = []
+            allRqa = []
+            allLabel = []
+            allInfo = []
             for start in tqdm(range(0, len(data) - winSize, winStep)):
                 end = start + winSize
+                # end = start + 100
                 timeSeries = data[start:end]
-                thisLabel = myUtil.getLabel(label[i_data][start:end])
+                thisLabel = myUtil.getLabel(trainLabel[i_data][start:end])
                 timeSeries = convertSetNumber(timeSeries)
                 binaryMatrix = makeRpMatrix(timeSeries, dim, tau, e, disNorm, isFixedEpsilon=isFixedEpsilon,
                                             dotRate=dotRate)
-                if thisLabel == config.NORMAL_LABEL:
-                    folderSave = config.SAVE_NORMAL_RP
-                    title = 'N-'
-                else:
-                    folderSave = config.SAVE_APNEA_RP
-                    title = 'A-'
-                title += 'record-{}.start-{}.end-{}'.format(i_data, start, end)
+                dotOfBinary = getDotOfRpBinary(binaryMatrix)
 
-                if config.IS_SAVE_RP_BINARY:
-                    np.save(folderSave + title + '.npy', binaryMatrix)
+                allRp.append(dotOfBinary)
+                allLabel.append(thisLabel)
+                allInfo.append([i_data, start, end])
 
-                pathSaveImage = folderSave + title + config.IMG_SUFFIX if config.IS_SAVE_RP_IMAGE else None
+                if config.IS_SAVE_RQA:
+                    thisRqa = rqa.rqaCalculate(binaryMatrix, lambd=myLambda)
+                    allRqa.append(thisRqa)
 
-                x = crossRecurrencePlots(windowTitle=title, dataMatrixBinary=binaryMatrix, myTitle=title,
-                                         pathSaveFigure=pathSaveImage, showPlot=config.IS_SHOW_RP)
+                if config.IS_SAVE_RP_IMAGE or config.IS_SHOW_RP:
+                    if thisLabel == config.NORMAL_LABEL:
+                        folderSave = config.PATH_RP_TRAIN_NORMAL
+                        title = 'N-'
+                    else:
+                        folderSave = config.PATH_RP_TRAIN_APNEA
+                        title = 'A-'
 
+                    title += 'record-{}.start-{}.end-{}'.format(i_data, start, end)
+                    pathSaveImage = folderSave + title + config.IMG_SUFFIX if config.IS_SAVE_RP_IMAGE else None
+
+                    x = crossRecurrencePlots(windowTitle=title, dataMatrixBinary=binaryMatrix, myTitle=title,
+                                             pathSaveFigure=pathSaveImage, showPlot=config.IS_SHOW_RP)
                 # plt.show()
+
+
+            recordName = config.NAME_OF_RECORD[i_data]
+            fileSaveRp = config.getFileSaveRp(recordName)
+            fileSaveLabel = config.getFileSaveLabel(recordName)
+            fileSaveInfo = config.getFileSaveInfo(recordName)
+
+            print('save ', fileSaveRp)
+            np.save(fileSaveRp, allRp)
+            np.save(fileSaveLabel, allLabel)
+            np.save(fileSaveInfo, allInfo)
+
+            if config.IS_SAVE_RQA:
+                fileSaveRqa = config.getFileSaveRqa(recordName)
+                np.save(fileSaveRqa, allRqa)
         else:
             print(" len of data < winSize({})".format(winSize))
+
+    # np.save(config.FILE_RP_TRAIN_NORMAL, rpNormal)
+    # np.save(config.FILE_RP_TRAIN_APNEA, rpApnea)

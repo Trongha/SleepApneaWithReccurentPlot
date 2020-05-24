@@ -1,5 +1,9 @@
 import os
+from typing import Union, Iterable
+
 import numpy as np
+from numpy.core._multiarray_umath import ndarray
+
 import config as config
 
 
@@ -12,7 +16,7 @@ def createFolder(directory):
 
 
 def readDataPreProcess(dataFile, labelFile):
-    trainDataOrigin = np.load(dataFile, allow_pickle=True)
+    trainDataOrigin: Union[ndarray, Iterable, int, float, tuple, dict] = np.load(dataFile, allow_pickle=True)
     labelOrigin = np.load(labelFile, allow_pickle=True)
 
     rriData = []  # [[record1], [record2], ...]
@@ -43,6 +47,26 @@ def readDataPreProcess(dataFile, labelFile):
     return rriData, label
 
 
+def getLabelAndInfo(recordName='a01'):
+    labelFile = config.getFileSaveLabel(recordName)
+    infoFile = config.getFileSaveInfo(recordName)
+    label = np.load(labelFile)
+    info = np.load(infoFile)
+    return label, info
+
+
+def readRpBinary(recordName='a01'):
+    # todo: use getFileName
+    # data = np.load(fileData)
+    dataFile = config.getFileSaveRp(recordName)
+    data = np.load(dataFile)
+    print(data)
+    print(data.shape)
+    print(data[1][1])
+    print(data[1][0])
+    return data, getLabelAndInfo(recordName)
+
+
 def getLabel(labels):
     '''
     :param labels:
@@ -57,3 +81,7 @@ def getLabel(labels):
         # print('label : apnea')
         return apnea
     return normal
+
+
+if __name__ == '__main__':
+    readRpBinary()

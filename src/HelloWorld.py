@@ -20,8 +20,8 @@ test = a[numTrain:]
 
 print('Hello World')
 
-dataFile = config.FOLDER_SAVE_RQA + 'rqa.npy'
-infoFile = config.FOLDER_SAVE_RQA + 'info.npy'
+dataFile = config.PATH_RQA + 'rqa.npy'
+infoFile = config.PATH_RQA + 'info.npy'
 rqa = np.load(dataFile, allow_pickle=True)
 info = np.load(infoFile, allow_pickle=True)
 labels = [i[3] for i in info]

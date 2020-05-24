@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 
 def getRQA(TimeSeries, dim=5, tau=2, epsilon=0.09, lambd=2, distNorm=1,
-           typeReturn='array', showCRP=0):
+           typeReturn='array', showCRP=False):
     if len(TimeSeries) > (dim - 1) * tau + 1:
         norm01TimeSeries = rp.convertSetNumber(TimeSeries)
 
@@ -18,7 +18,7 @@ def getRQA(TimeSeries, dim=5, tau=2, epsilon=0.09, lambd=2, distNorm=1,
     return None
 
 
-def rqaCalculate(rpBinaryMatrix, keyDot=1, lambd=8, typeReturn='array', showCRP=0):
+def rqaCalculate(rpBinaryMatrix, keyDot=1, lambd=8, typeReturn='array', showCRP=False):
     import math
 
     len_rpBinaryMatrix = int(np.size(rpBinaryMatrix[0]))
@@ -97,7 +97,7 @@ def rqaCalculate(rpBinaryMatrix, keyDot=1, lambd=8, typeReturn='array', showCRP=
     if lmax > 0:
         div = 1 / lmax
 
-    if (showCRP == 1):
+    if showCRP:
         import matplotlib.pyplot as plt
         x = rp.crossRecurrencePlots("test", rpBinaryMatrix, keyDot=keyDot, dotSize=10)
         plt.show()
@@ -110,9 +110,9 @@ def rqaCalculate(rpBinaryMatrix, keyDot=1, lambd=8, typeReturn='array', showCRP=
         print(entr)
         print("averageTime1, averageTime2", averageTime1, averageTime2)
 
-    if (typeReturn == 'array'):
+    if typeReturn == 'array':
         return [rr, det, lam, ratio, averageL, averageH, lmax, hmax, div, entr, averageTime1, averageTime2]
-    if (typeReturn == 'dict'):
+    if typeReturn == 'dict':
         return {
             "rr": rr,
             "det": det,
@@ -226,14 +226,14 @@ if __name__ == '__main__':
     print(len(rriData))
     print(len(label))
 
-    myUtil.createFolder(config.FOLDER_SAVE_RQA)
-    fileData = config.FOLDER_SAVE_RQA + 'rqa.npy'
-    fileInfo = config.FOLDER_SAVE_RQA + 'info.npy'  # [[label, idRecord, start, end], [], ...]
+    myUtil.createFolder(config.PATH_RQA)
+    fileData = config.PATH_RQA + 'rqa.npy'
+    fileInfo = config.PATH_RQA + 'info.npy'  # [[label, idRecord, start, end], [], ...]
     allRqa = []
     allInfo = []
 
-    fileNormal = config.FOLDER_SAVE_RQA + 'normalData.npy'
-    fileApnea = config.FOLDER_SAVE_RQA + 'apneaData.npy'
+    fileNormal = config.PATH_RQA + 'normalData.npy'
+    fileApnea = config.PATH_RQA + 'apneaData.npy'
     dataNormal = []
     dataApnea = []
 
@@ -249,7 +249,7 @@ if __name__ == '__main__':
                 # print(binaryMatrix)
                 info = [start, end, thisLabel]
 
-                content.append(info+rqa)
+                content.append(info + rqa)
 
                 allRqa.append(rqa)
                 allInfo.append([i_data] + info)
@@ -263,7 +263,7 @@ if __name__ == '__main__':
         else:
             print(" len of data < winSize({})".format(winSize))
         if len(content) > 0:
-            outputFileName = config.FOLDER_SAVE_RQA + str(i_data) + '.npy'
+            outputFileName = config.PATH_RQA + str(i_data) + '.npy'
             print('save file: ', outputFileName)
             np.save(outputFileName, content)
 
@@ -271,4 +271,3 @@ if __name__ == '__main__':
     np.save(fileInfo, allInfo)
     # np.save(fileNormal, dataNormal)
     # np.save(fileApnea, dataApnea)
-

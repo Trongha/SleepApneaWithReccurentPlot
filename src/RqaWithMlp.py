@@ -4,8 +4,8 @@ from sklearn.metrics import accuracy_score
 import numpy as np
 import config as config
 
-fileNormal = config.FOLDER_SAVE_RQA + 'normalData.npy'
-fileApnea = config.FOLDER_SAVE_RQA + 'apneaData.npy'
+fileNormal = config.PATH_RQA + 'normalData.npy'
+fileApnea = config.PATH_RQA + 'apneaData.npy'
 
 rqaNormal = np.load(fileNormal)
 rqaApnea = np.load(fileApnea)
