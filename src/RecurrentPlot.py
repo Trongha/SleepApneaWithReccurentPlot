@@ -180,7 +180,7 @@ if __name__ == '__main__':
     print(len(trainData))
     print(len(trainLabel))
 
-    myUtil.createFolder(config.PATH_RP)
+    myUtil.createFolder(config.PATH_RP_TRAIN)
     if config.IS_SAVE_RP_IMAGE:
         myUtil.createFolder(config.PATH_RP_TRAIN_NORMAL)
         myUtil.createFolder(config.PATH_RP_TRAIN_APNEA)
@@ -230,8 +230,9 @@ if __name__ == '__main__':
 
                     x = crossRecurrencePlots(windowTitle=title, dataMatrixBinary=binaryMatrix, myTitle=title,
                                              pathSaveFigure=pathSaveImage, showPlot=config.IS_SHOW_RP)
-                # plt.show()
+                    # plt.show()
 
+            # ------------------------- done for one record -------------------------
             recordName = config.NAME_OF_RECORD[i_data]
             print('done make rp for ', recordName)
 
