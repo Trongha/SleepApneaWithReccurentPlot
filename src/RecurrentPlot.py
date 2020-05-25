@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
-import config
+from src import config
 import src.RecurrenceQuantificationAnalysis as rqa
 import src.MyUtil as myUtil
 
@@ -117,6 +117,15 @@ def getDotOfRpBinary(rpBinary, keyDot=1):
     return dots
 
 
+def getRpBinaryFromListDot(listDot, keyDot=1):
+    l = len(listDot)
+    rpBinary = np.zeros((l, l))
+    for y, row in enumerate(listDot):
+        for x in row:
+            rpBinary[y][x] = keyDot
+    return rpBinary
+
+
 # ============================== read data =================================#
 def readData(dataFile, labelFile):
     trainDataOrigin = np.load(dataFile, allow_pickle=True)
@@ -171,13 +180,14 @@ if __name__ == '__main__':
     print(len(trainData))
     print(len(trainLabel))
 
-    myUtil.createFolder(config.PATH_RP_TRAIN_NORMAL)
-    myUtil.createFolder(config.PATH_RP_TRAIN_APNEA)
+    myUtil.createFolder(config.PATH_RP)
+    if config.IS_SAVE_RP_IMAGE:
+        myUtil.createFolder(config.PATH_RP_TRAIN_NORMAL)
+        myUtil.createFolder(config.PATH_RP_TRAIN_APNEA)
 
     rpNormal = []
     rpApnea = []
     # allRp = []
-    myUtil.createFolder(config.PATH_RP)
     for i_data, data in enumerate(trainData):
         # if i_data > 1:
         #     break
@@ -195,11 +205,13 @@ if __name__ == '__main__':
                 timeSeries = convertSetNumber(timeSeries)
                 binaryMatrix = makeRpMatrix(timeSeries, dim, tau, e, disNorm, isFixedEpsilon=isFixedEpsilon,
                                             dotRate=dotRate)
-                dotOfBinary = getDotOfRpBinary(binaryMatrix)
 
-                allRp.append(dotOfBinary)
                 allLabel.append(thisLabel)
                 allInfo.append([i_data, start, end])
+
+                if config.IS_SAVE_RP_DOT:
+                    dotOfBinary = getDotOfRpBinary(binaryMatrix)
+                    allRp.append(dotOfBinary)
 
                 if config.IS_SAVE_RQA:
                     thisRqa = rqa.rqaCalculate(binaryMatrix, lambd=myLambda)
@@ -220,19 +232,25 @@ if __name__ == '__main__':
                                              pathSaveFigure=pathSaveImage, showPlot=config.IS_SHOW_RP)
                 # plt.show()
 
-
             recordName = config.NAME_OF_RECORD[i_data]
-            fileSaveRp = config.getFileSaveRp(recordName)
-            fileSaveLabel = config.getFileSaveLabel(recordName)
-            fileSaveInfo = config.getFileSaveInfo(recordName)
+            print('done make rp for ', recordName)
 
-            print('save ', fileSaveRp)
-            np.save(fileSaveRp, allRp)
-            np.save(fileSaveLabel, allLabel)
-            np.save(fileSaveInfo, allInfo)
+            if config.IS_SAVE_LABEL_AND_INFO:
+                fileSaveLabel = config.getFileSaveLabel(recordName)
+                fileSaveInfo = config.getFileSaveInfo(recordName)
+                print('save ', fileSaveLabel)
+                np.save(fileSaveLabel, allLabel)
+                print('save ', fileSaveInfo)
+                np.save(fileSaveInfo, allInfo)
+
+            if config.IS_SAVE_RP_DOT:
+                fileSaveRp = config.getFileSaveRp(recordName)
+                print('save ', fileSaveRp)
+                np.save(fileSaveRp, allRp)
 
             if config.IS_SAVE_RQA:
                 fileSaveRqa = config.getFileSaveRqa(recordName)
+                print('save ', fileSaveRqa)
                 np.save(fileSaveRqa, allRqa)
         else:
             print(" len of data < winSize({})".format(winSize))

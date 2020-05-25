@@ -1,12 +1,11 @@
 import wfdb
-import matplotlib.pyplot as plt
 import numpy as np
 # from hrv.filters import quotient, moving_median
 from scipy import interpolate
 from tqdm import tqdm
 import os
 
-import config as config
+from src import config as config
 
 FS = 100.0
 

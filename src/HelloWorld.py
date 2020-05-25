@@ -1,5 +1,5 @@
 import numpy as np
-import config as config
+from src import config as config
 
 
 def getBinaryByRow(row, dotRate):

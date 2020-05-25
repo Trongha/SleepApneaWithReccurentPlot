@@ -34,15 +34,18 @@ DISTANCE_NORM = 2
 IS_FIXED_EPSILON = False
 DOT_RATE = 0.2
 
+IS_SAVE_RP_DOT = True
+IS_SAVE_LABEL_AND_INFO = True
+IS_SAVE_RQA = True
+
 IS_SAVE_RP_IMAGE = False
-IS_SAVE_RP_BINARY = False
 IS_SHOW_RP = False
 
 PATH_RP = res + 'rp/'
 PATH_RP_TRAIN = PATH_RP + 'train/'
 
-PATH_RP_TRAIN_NORMAL = PATH_RP_TRAIN + 'normal/'
-PATH_RP_TRAIN_APNEA = PATH_RP_TRAIN + 'apnea/'
+PATH_RP_TRAIN_NORMAL = PATH_RP_TRAIN + 'normalImage/'
+PATH_RP_TRAIN_APNEA = PATH_RP_TRAIN + 'apneaImage/'
 
 FILE_RP_TRAIN_NORMAL = PATH_RP + 'rp_train_normal.npy'  # [[rp, label], [rp, label]]
 FILE_RP_TRAIN_APNEA = PATH_RP + 'rp_train_apnea.npy'
@@ -52,13 +55,21 @@ RP_SUFFIX = '.rp'
 INFO_SUFFIX = '.inf'
 LABEL_SUFFIX = '.lb'
 RQA_SUFFIX = '.rqa'
+# ========================================================================================
 
+
+# ==================================== config for RQA ====================================
+MY_LAMBDA = 80
+PATH_RQA = res + 'rqa/'
+PATH_RQA_TRAIN = PATH_RQA + 'train/'
+# =======================================================================================
 
 def getFileSaveRp(recordName):
     return PATH_RP_TRAIN + recordName + '.rp.npy'
 
 
 def getFileSaveLabel(recordName):
+    # format of file: [[i_data, start, end], [i_data, start, end], ...]
     return PATH_RP_TRAIN + recordName + '.lb.npy'
 
 
@@ -68,13 +79,6 @@ def getFileSaveInfo(recordName):
 
 def getFileSaveRqa(recordName):
     return PATH_RP_TRAIN + recordName + '.rqa.npy'
-# ========================================================================================
 
 
-# ==================================== config for RQA ====================================
-IS_SAVE_RQA = True
-MY_LAMBDA = 80
-PATH_RQA = res + 'rqa/'
-PATH_RQA_TRAIN = PATH_RQA + 'train/'
 
-# =======================================================================================

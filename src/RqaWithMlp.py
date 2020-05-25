@@ -2,7 +2,7 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import accuracy_score
 
 import numpy as np
-import config as config
+from src import config as config
 
 fileNormal = config.PATH_RQA + 'normalData.npy'
 fileApnea = config.PATH_RQA + 'apneaData.npy'
