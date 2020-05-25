@@ -5,3 +5,4 @@ output/my_train_label - Copy.npy
 src/HelloWorld.py
 src/HelloWorld.py
 *.npy
+*.pyc
