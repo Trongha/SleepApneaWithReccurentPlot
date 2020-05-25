@@ -257,4 +257,5 @@ if __name__ == '__main__':
             print(" len of data < winSize({})".format(winSize))
 
     # np.save(config.FILE_RP_TRAIN_NORMAL, rpNormal)
+    
     # np.save(config.FILE_RP_TRAIN_APNEA, rpApnea)
