@@ -1,4 +1,6 @@
 
 *.png
 *.txt
+src/HelloWorld.py
 *.npy
+*.pyc
