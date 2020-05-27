@@ -28,7 +28,8 @@ def getLabelAndInfo(recordName='a01'):
 def readRpBinary(recordName='a01'):
     # todo: use getFileName
     dataFile = config.getFileSaveRp(recordName)
-    listRpBinary = np.load(dataFile, allow_pickle=True)
+    listDotOfRp = np.load(dataFile, allow_pickle=True)
+    listRpBinary = [rp.getRpBinaryFromListDot(listDot) for listDot in listDotOfRp]
     label, info = getLabelAndInfo(recordName)
     return listRpBinary, label, info
 

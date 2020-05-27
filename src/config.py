@@ -76,21 +76,21 @@ def getFileTxtRri(recordName):
 
 
 def getFileSaveRp(recordName, type='train'):
-    folder = PATH_RQA_TRAIN if type == 'train' else PATH_RP_TEST
+    folder = PATH_RP_TRAIN if type == 'train' else PATH_RP_TEST
     return folder + recordName + '.rp.npy'
 
 
 def getFileSaveLabel(recordName, type='train'):
     # format of file: [[i_data, start, end], [i_data, start, end], ...]
-    folder = PATH_RQA_TRAIN if type == 'train' else PATH_RP_TEST
+    folder = PATH_RP_TRAIN if type == 'train' else PATH_RP_TEST
     return folder + recordName + '.lb.npy'
 
 
 def getFileSaveInfo(recordName, type='train'):
-    folder = PATH_RQA_TRAIN if type == 'train' else PATH_RP_TEST
+    folder = PATH_RP_TRAIN if type == 'train' else PATH_RP_TEST
     return folder + recordName + '.inf.npy'
 
 
 def getFileSaveRqa(recordName, type='train'):
-    folder = PATH_RQA_TRAIN if type == 'train' else PATH_RP_TEST
+    folder = PATH_RP_TRAIN if type == 'train' else PATH_RP_TEST
     return folder + recordName + '.rqa.npy'
