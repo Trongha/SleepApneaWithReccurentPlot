@@ -42,7 +42,7 @@ def loadRri(dataFile, labelFile):
         rri = originData[0]
         recordIndex = originData[1]
         if recordIndex == curRecordIndex:
-            curListIndexStartMinute.append(len(curContainer)-1)
+            curListIndexStartMinute.append(len(curContainer))
             curContainer = np.append(curContainer, np.array(rri))
             curListLabel += [labelOrigin[i]] * len(rri)
         else:
@@ -56,7 +56,7 @@ def loadRri(dataFile, labelFile):
             curRecordIndex = recordIndex
             curContainer = rri
             curListLabel = [labelOrigin[i]] * len(rri)
-            curListIndexStartMinute = [-1]
+            curListIndexStartMinute = [0]
             print("curRecordIndex: ", curRecordIndex)
 
     # push last record
@@ -135,38 +135,38 @@ if __name__ == '__main__':
         myUtil.createFolder(config.PATH_RP_TRAIN_APNEA)
 
     # ============================= MAKE TRAIN DATA =========================
-    for recordIndex, rriData in enumerate(trainData):
-        # if i_data > 1:
-        #     break
-        print('recordIndex: {}, len of record: {}, len of Label: {}'
-              .format(recordIndex, len(rriData), len(trainLabel[recordIndex])))
-        if len(rriData) > winSize:
-            rpOfThisRecord = []
-            rqaOfThisRecord = []
-            labelOfThisRecord = []
-            infoOfThisRecord = []
-            for start in tqdm(range(0, len(rriData) - winSize, winStep)):
-                end = start + winSize
-                # end = start + 100
-                timeSeries = rriData[start:end]
-                # timeSeries = convertSetNumber(timeSeries)
-                doSomething(timeSeries, rpOfThisRecord, rqaOfThisRecord)
-                # ================= get start of last minute ============================
-                startMinute = end
-                sumSec = rriData[end]
-                while sumSec + rriData[startMinute - 1] < config.MINUTE:
-                    startMinute -= 1
-                    sumSec += rriData[startMinute]
-                # ======================================================================
-                thisLabel = myUtil.getLabel(trainLabel[recordIndex][startMinute:end])
-                labelOfThisRecord.append(thisLabel)
-                infoOfThisRecord.append([recordIndex, start, end])
-            # ------------------------- done for one record -------------------------
-            recordName = config.NAME_OF_RECORD[recordIndex]
-            print('done make rp for ', recordName)
-            saveSomething(recordName, 'train', labelOfThisRecord, infoOfThisRecord, rpOfThisRecord, rqaOfThisRecord)
-        else:
-            print(" len of data < winSize({})".format(winSize))
+    # for recordIndex, rriData in enumerate(trainData):
+    #     # if i_data > 1:
+    #     #     break
+    #     print('recordIndex: {}, len of record: {}, len of Label: {}'
+    #           .format(recordIndex, len(rriData), len(trainLabel[recordIndex])))
+    #     if len(rriData) > winSize:
+    #         rpOfThisRecord = []
+    #         rqaOfThisRecord = []
+    #         labelOfThisRecord = []
+    #         infoOfThisRecord = []
+    #         for start in tqdm(range(0, len(rriData) - winSize, winStep)):
+    #             end = start + winSize
+    #             # end = start + 100
+    #             timeSeries = rriData[start:end]
+    #             # timeSeries = convertSetNumber(timeSeries)
+    #             doSomething(timeSeries, rpOfThisRecord, rqaOfThisRecord)
+    #             # ================= get start of last minute ============================
+    #             startMinute = end
+    #             sumSec = rriData[end]
+    #             while sumSec + rriData[startMinute - 1] < config.MINUTE:
+    #                 startMinute -= 1
+    #                 sumSec += rriData[startMinute]
+    #             # ======================================================================
+    #             thisLabel = myUtil.getLabel(trainLabel[recordIndex][startMinute:end])
+    #             labelOfThisRecord.append(thisLabel)
+    #             infoOfThisRecord.append([recordIndex, start, end])
+    #         # ------------------------- done for one record -------------------------
+    #         recordName = config.NAME_OF_RECORD[recordIndex]
+    #         print('done make rp for ', recordName)
+    #         saveSomething(recordName, 'train', labelOfThisRecord, infoOfThisRecord, rpOfThisRecord, rqaOfThisRecord)
+    #     else:
+    #         print(" len of data < winSize({})".format(winSize))
 
     # ============================= MAKE TEST DATA =========================
     startTestRecordIndex = config.NUMBER_OF_TRAIN_RECORD
@@ -179,18 +179,20 @@ if __name__ == '__main__':
         labelOfThisRecord = []
         infoOfThisRecord = []
         listIndexStartMinute = allIndexStartMinute[recordIndex]
-        for iMinute in tqdm(range(len(listIndexStartMinute) - 1, winSize, -1)):
+        for iMinute in tqdm(range(len(listIndexStartMinute) - 1, 0, -1)):
             end = listIndexStartMinute[iMinute]
             start = end - winSize
-            # if startIndex < 0:
-            #     break
+            if start < 0:
+                break
             timeSeries = rriData[start:end]
             # timeSeries = convertSetNumber(timeSeries)
             doSomething(timeSeries, rpOfThisRecord, rqaOfThisRecord)
             # ================= get Label ==========================================
-            if len(np.unique(allLabel[recordIndex][start:end])) != 1:
-                print('error label test: ', recordIndex, start, end, allLabel[recordIndex][start:end])
-            thisLabel = allLabel[recordIndex][start + 1]
+            startLastMinute = listIndexStartMinute[iMinute-1]
+            listLabelInLastMinute = allLabel[recordIndex][startLastMinute:end]
+            if len(np.unique(listLabelInLastMinute)) != 1:
+                print('error label test: ', recordIndex, start, end, listLabelInLastMinute)
+            thisLabel = listLabelInLastMinute[1]
             # ======================================================================
             labelOfThisRecord.append(thisLabel)
             infoOfThisRecord.append([recordIndex, start, end])
