@@ -1,7 +1,7 @@
 import numpy as np
 # import json
-import src.RecurrentPlot as rp
-import src.MyUtil as myUtil
+from src import RecurrentPlot as rp
+from src import MyUtil as myUtil
 from src import config as config
 from tqdm import tqdm
 
