@@ -68,9 +68,9 @@ RQA_SUFFIX = '.rqa'
 MY_LAMBDA = 80
 PATH_RQA = res + 'rqa/'
 PATH_RQA_TRAIN = PATH_RQA + 'train/'
-
-
 # =======================================================================================
+
+
 def getFileTxtRri(recordName):
     return PATH_RRI + recordName + '.rri.txt'
 
