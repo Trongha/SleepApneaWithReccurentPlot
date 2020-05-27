@@ -91,10 +91,10 @@ def doSomething(timeSeries, rpContainer=None, rqaContainer=None):
                                 pathSaveFigure=pathSaveImage, showPlot=config.IS_SHOW_RP)
 
 
-def saveSomething(recordName, labelContainer=None, infoContainer=None, rpContainer=None, rqaContainer=None):
+def saveSomething(recordName, type='train',labelContainer=None, infoContainer=None, rpContainer=None, rqaContainer=None):
     if config.IS_SAVE_LABEL_AND_INFO:
-        fileSaveLabel = config.getFileSaveLabel(recordName)
-        fileSaveInfo = config.getFileSaveInfo(recordName)
+        fileSaveLabel = config.getFileSaveLabel(recordName, type)
+        fileSaveInfo = config.getFileSaveInfo(recordName, type)
         print('save ', fileSaveLabel)
         if labelContainer is not None:
             np.save(fileSaveLabel, labelContainer)
@@ -103,13 +103,13 @@ def saveSomething(recordName, labelContainer=None, infoContainer=None, rpContain
             np.save(fileSaveInfo, infoContainer)
 
     if config.IS_SAVE_RP_DOT:
-        fileSaveRp = config.getFileSaveRp(recordName)
+        fileSaveRp = config.getFileSaveRp(recordName, type)
         print('save ', fileSaveRp)
         if rpContainer is not None:
             np.save(fileSaveRp, rpContainer)
 
     if config.IS_SAVE_RQA:
-        fileSaveRqa = config.getFileSaveRqa(recordName)
+        fileSaveRqa = config.getFileSaveRqa(recordName, type)
         print('save ', fileSaveRqa)
         if rqaContainer is not None:
             np.save(fileSaveRqa, rqaContainer)
@@ -129,10 +129,12 @@ if __name__ == '__main__':
     print(len(trainLabel))
 
     myUtil.createFolder(config.PATH_RP_TRAIN)
+    myUtil.createFolder(config.PATH_RP_TEST)
     if config.IS_SAVE_RP_IMAGE:
         myUtil.createFolder(config.PATH_RP_TRAIN_NORMAL)
         myUtil.createFolder(config.PATH_RP_TRAIN_APNEA)
 
+    # ============================= MAKE TRAIN DATA =========================
     for recordIndex, rriData in enumerate(trainData):
         # if i_data > 1:
         #     break
@@ -162,7 +164,7 @@ if __name__ == '__main__':
             # ------------------------- done for one record -------------------------
             recordName = config.NAME_OF_RECORD[recordIndex]
             print('done make rp for ', recordName)
-            saveSomething(recordName, labelOfThisRecord, infoOfThisRecord, rpOfThisRecord, rqaOfThisRecord)
+            saveSomething(recordName, 'train', labelOfThisRecord, infoOfThisRecord, rpOfThisRecord, rqaOfThisRecord)
         else:
             print(" len of data < winSize({})".format(winSize))
 
@@ -186,7 +188,6 @@ if __name__ == '__main__':
             # timeSeries = convertSetNumber(timeSeries)
             doSomething(timeSeries, rpOfThisRecord, rqaOfThisRecord)
             # ================= get Label ==========================================
-            print('recordIndex: ', recordIndex)
             if len(np.unique(allLabel[recordIndex][start:end])) != 1:
                 print('error label test: ', recordIndex, start, end, allLabel[recordIndex][start:end])
             thisLabel = allLabel[recordIndex][start + 1]
@@ -196,4 +197,4 @@ if __name__ == '__main__':
         # ------------------------- done for one record -------------------------
         recordName = config.NAME_OF_RECORD[recordIndex]
         print('done make rp for ', recordName)
-        saveSomething(recordName, labelOfThisRecord, infoOfThisRecord, rpOfThisRecord, rqaOfThisRecord)
+        saveSomething(recordName,'test', labelOfThisRecord, infoOfThisRecord, rpOfThisRecord, rqaOfThisRecord)

@@ -8,8 +8,6 @@ IS_SHOW_RP = False
 # =======================================================================================
 
 
-
-
 res = '../res/'
 MINUTE = 60
 
@@ -36,7 +34,6 @@ NAME_OF_RECORD = ['a01', 'a02', 'a03', 'a04', 'a05',
 # =======================================================================================
 
 
-
 # ==================================== config for RP ====================================
 MIN_PERCENT_APNEA = 0.7
 RR_PER_RECURRENCE_PLOTS = 450
@@ -51,6 +48,8 @@ DOT_RATE = 0.2
 
 PATH_RP = res + 'rp/'
 PATH_RP_TRAIN = PATH_RP + 'train/'
+PATH_RP_TEST = PATH_RP + 'test/'
+
 PATH_RP_TRAIN_NORMAL = PATH_RP_TRAIN + 'normalImage/'
 PATH_RP_TRAIN_APNEA = PATH_RP_TRAIN + 'apneaImage/'
 
@@ -76,18 +75,22 @@ def getFileTxtRri(recordName):
     return PATH_RRI + recordName + '.rri.txt'
 
 
-def getFileSaveRp(recordName):
-    return PATH_RP_TRAIN + recordName + '.rp.npy'
+def getFileSaveRp(recordName, type='train'):
+    folder = PATH_RQA_TRAIN if type == 'train' else PATH_RP_TEST
+    return folder + recordName + '.rp.npy'
 
 
-def getFileSaveLabel(recordName):
+def getFileSaveLabel(recordName, type='train'):
     # format of file: [[i_data, start, end], [i_data, start, end], ...]
-    return PATH_RP_TRAIN + recordName + '.lb.npy'
+    folder = PATH_RQA_TRAIN if type == 'train' else PATH_RP_TEST
+    return folder + recordName + '.lb.npy'
 
 
-def getFileSaveInfo(recordName):
-    return PATH_RP_TRAIN + recordName + '.inf.npy'
+def getFileSaveInfo(recordName, type='train'):
+    folder = PATH_RQA_TRAIN if type == 'train' else PATH_RP_TEST
+    return folder + recordName + '.inf.npy'
 
 
-def getFileSaveRqa(recordName):
-    return PATH_RP_TRAIN + recordName + '.rqa.npy'
+def getFileSaveRqa(recordName, type='train'):
+    folder = PATH_RQA_TRAIN if type == 'train' else PATH_RP_TEST
+    return folder + recordName + '.rqa.npy'
