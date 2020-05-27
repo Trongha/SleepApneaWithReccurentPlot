@@ -65,30 +65,16 @@ if __name__ == '__main__':
     createFolder(config.PATH_RP_TRAIN_APNEA)
     for iData in [0, 5, 9]:
         print('iData: ', iData)
-        data, label, info = readRpBinary(recordNames[iData])
-        start = 0
-        while (label[start] != config.APNEA_LABEL):
-            start += 1
+        listRpBinary, label, info = readRpBinary(recordNames[iData])
 
-        for i in range(start, start + 5, 1):
-            listDot = data[i]
-            thisLabel = label[i]
-            title = 'N-' if thisLabel == config.NORMAL_LABEL else 'A-'
-            title += 'record-{}.start-{}.end-{}'.format(iData, info[i][1], info[i][2])
-            folderSave = config.PATH_RP_TRAIN_NORMAL if thisLabel == config.NORMAL_LABEL \
-                else config.PATH_RP_TRAIN_APNEA
-            pathSaveImage = folderSave + title + config.IMG_SUFFIX if config.IS_SAVE_RP_IMAGE else None
-            rpBinary = rp.getRpBinaryFromListDot(listDot)
-            rp.crossRecurrencePlots(title, rpBinary, myTitle=title, showPlot=True, pathSaveFigure=pathSaveImage)
         for i in range(10, 15, 1):
-            listDot = data[i]
+            rpBinary = listRpBinary[i]
             thisLabel = label[i]
             title = 'N-' if thisLabel == config.NORMAL_LABEL else 'A-'
             title += 'record-{}.start-{}.end-{}'.format(iData, info[i][1], info[i][2])
             folderSave = config.PATH_RP_TRAIN_NORMAL if thisLabel == config.NORMAL_LABEL \
                 else config.PATH_RP_TRAIN_APNEA
             pathSaveImage = folderSave + title + config.IMG_SUFFIX if config.IS_SAVE_RP_IMAGE else None
-            rpBinary = rp.getRpBinaryFromListDot(listDot)
             rp.crossRecurrencePlots(title, dataMatrixBinary=rpBinary, myTitle=title, showPlot=True,
                                     pathSaveFigure=pathSaveImage)
 
