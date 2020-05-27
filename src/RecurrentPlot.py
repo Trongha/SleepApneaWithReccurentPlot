@@ -5,11 +5,6 @@ from src import config
 import src.RecurrenceQuantificationAnalysis as rqa
 import src.MyUtil as myUtil
 
-# res = '../res/train/'
-res = '../output/'
-trainDataFile = config.FILE_RRI_NPY
-trainLabelFile = config.FILE_RRI_LABEL
-
 
 def convert2StatePhase(timeSeries, dim, tau, returnType='array'):
     # v: vecto
@@ -134,140 +129,28 @@ def readData(dataFile, labelFile):
     trainData = []
     label = []
 
-    curMinute = None
+    curRecordIndex = None
     curContainer = []
     curListLabel = []
     sumRri = 0
     for i, originData in enumerate(trainDataOrigin):
         rri = originData[0]
-        iMinute = originData[1]
+        recordIndex = originData[1]
         sumRri += np.sum(rri)
         print("sumRri: ", sumRri)
-        if iMinute == curMinute:
+        if recordIndex == curRecordIndex:
             curContainer = np.append(curContainer, np.array(rri))
             curListLabel += [labelOrigin[i] for numberOf in range(len(rri))]
         else:
-            if curMinute is not None:
+            if curRecordIndex is not None:
                 trainData.append(curContainer)
                 label.append(curListLabel)
 
-            curMinute = iMinute
+            curRecordIndex = recordIndex
             curContainer = rri
             curListLabel = [labelOrigin[i] for numberOf in range(len(rri))]
-            print("curMinute: ", curMinute)
+            print("curRecordIndex: ", curRecordIndex)
     trainData.append(curContainer)
     label.append(curListLabel)
     return trainData, label
 
-
-if __name__ == '__main__':
-    print("RecurrentPlot.py run main")
-    # ============================== Load Config =================================#
-    winSize = config.RR_PER_RECURRENCE_PLOTS
-    winStep = config.WIN_STEP_SIZE
-    dim = config.DIMENSION
-    tau = config.TAU
-    e = config.EPSILON
-    disNorm = config.DISTANCE_NORM
-    dotRate = config.DOT_RATE
-    isFixedEpsilon = config.IS_FIXED_EPSILON
-
-    myLambda = config.MY_LAMBDA
-    # ============================================================================#
-
-    allData, allLabel = readData(trainDataFile, trainLabelFile)
-    print('stop')
-    trainData = allData[0:config.NUMBER_OF_TRAIN]
-    trainLabel = allLabel[0:config.NUMBER_OF_TRAIN]
-
-    print(len(trainData))
-    print(len(trainLabel))
-
-    myUtil.createFolder(config.PATH_RP_TRAIN)
-    if config.IS_SAVE_RP_IMAGE:
-        myUtil.createFolder(config.PATH_RP_TRAIN_NORMAL)
-        myUtil.createFolder(config.PATH_RP_TRAIN_APNEA)
-
-    rpNormal = []
-    rpApnea = []
-    # allRp = []
-    for i_data, data in enumerate(trainData):
-        # if i_data > 1:
-        #     break
-        print('len of item ', i_data, len(data), len(trainLabel[i_data]))
-        if len(data) > winSize:
-            allRp = []
-            allRqa = []
-            allLabel = []
-            allInfo = []
-            for start in tqdm(range(0, len(data) - winSize, winStep)):
-                end = start + winSize
-                # end = start + 100
-                timeSeries = data[start:end]
-
-                #================= get start of end minute ============================
-                startMinute = end
-                sumSec = data[end]
-                while sumSec + data[startMinute - 1] < config.MINUTE:
-                    startMinute -= 1
-                    sumSec += data[startMinute]
-                #======================================================================
-
-                thisLabel = myUtil.getLabel(trainLabel[i_data][startMinute:end])
-                # timeSeries = convertSetNumber(timeSeries)
-                binaryMatrix = makeRpMatrix(timeSeries, dim, tau, e, disNorm, isFixedEpsilon=isFixedEpsilon,
-                                            dotRate=dotRate)
-
-                allLabel.append(thisLabel)
-                allInfo.append([i_data, start, end])
-
-                if config.IS_SAVE_RP_DOT:
-                    dotOfBinary = getDotOfRpBinary(binaryMatrix)
-                    allRp.append(dotOfBinary)
-
-                if config.IS_SAVE_RQA:
-                    thisRqa = rqa.rqaCalculate(binaryMatrix, lambd=myLambda)
-                    allRqa.append(thisRqa)
-
-                if config.IS_SAVE_RP_IMAGE or config.IS_SHOW_RP:
-                    if thisLabel == config.NORMAL_LABEL:
-                        folderSave = config.PATH_RP_TRAIN_NORMAL
-                        title = 'N-'
-                    else:
-                        folderSave = config.PATH_RP_TRAIN_APNEA
-                        title = 'A-'
-
-                    title += 'record-{}.start-{}.end-{}'.format(i_data, start, end)
-                    pathSaveImage = folderSave + title + config.IMG_SUFFIX if config.IS_SAVE_RP_IMAGE else None
-
-                    x = crossRecurrencePlots(windowTitle=title, dataMatrixBinary=binaryMatrix, myTitle=title,
-                                             pathSaveFigure=pathSaveImage, showPlot=config.IS_SHOW_RP)
-                    # plt.show()
-
-            # ------------------------- done for one record -------------------------
-            recordName = config.NAME_OF_RECORD[i_data]
-            print('done make rp for ', recordName)
-
-            if config.IS_SAVE_LABEL_AND_INFO:
-                fileSaveLabel = config.getFileSaveLabel(recordName)
-                fileSaveInfo = config.getFileSaveInfo(recordName)
-                print('save ', fileSaveLabel)
-                np.save(fileSaveLabel, allLabel)
-                print('save ', fileSaveInfo)
-                np.save(fileSaveInfo, allInfo)
-
-            if config.IS_SAVE_RP_DOT:
-                fileSaveRp = config.getFileSaveRp(recordName)
-                print('save ', fileSaveRp)
-                np.save(fileSaveRp, allRp)
-
-            if config.IS_SAVE_RQA:
-                fileSaveRqa = config.getFileSaveRqa(recordName)
-                print('save ', fileSaveRqa)
-                np.save(fileSaveRqa, allRqa)
-        else:
-            print(" len of data < winSize({})".format(winSize))
-
-    # np.save(config.FILE_RP_TRAIN_NORMAL, rpNormal)
-
-    # np.save(config.FILE_RP_TRAIN_APNEA, rpApnea)

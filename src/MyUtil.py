@@ -15,36 +15,6 @@ def createFolder(directory):
         print('Error: Creating directory. ' + directory)
 
 
-def loadRri(dataFile, labelFile):
-    trainDataOrigin = np.load(dataFile, allow_pickle=True)
-    labelOrigin = np.load(labelFile, allow_pickle=True)
-
-    rriData = []  # [[record1], [record2], ...]
-    label = []  # [[listLabels1], [listLabels2], ...]
-    # ===> rriData[i][j] has label[i][j]
-
-    curId = None
-    curContainer = []
-    curListLabel = []
-    for i, originData in enumerate(trainDataOrigin):
-        rri = originData[0]
-        id = originData[1]
-        if id == curId:
-            curContainer = np.append(curContainer, np.array(rri))
-            curListLabel += [labelOrigin[i] for numberOf in range(len(rri))]
-        else:
-            if curId is not None:
-                rriData.append(curContainer)
-                label.append(curListLabel)
-
-            curId = id
-            curContainer = rri
-            curListLabel = [labelOrigin[i] for numberOf in range(len(rri))]
-            print("curId: ", curId)
-
-    rriData.append(curContainer)
-    label.append(curListLabel)
-    return rriData, label
 
 
 def getLabelAndInfo(recordName='a01'):
@@ -57,11 +27,10 @@ def getLabelAndInfo(recordName='a01'):
 
 def readRpBinary(recordName='a01'):
     # todo: use getFileName
-    # data = np.load(fileData)
     dataFile = config.getFileSaveRp(recordName)
-    data = np.load(dataFile, allow_pickle=True)
+    listRpBinary = np.load(dataFile, allow_pickle=True)
     label, info = getLabelAndInfo(recordName)
-    return data, label, info
+    return listRpBinary, label, info
 
 
 def getLabel(labels):

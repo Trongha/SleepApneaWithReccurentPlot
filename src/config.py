@@ -1,19 +1,28 @@
+# ==================================== turn On - Off ====================================
+IS_SAVE_RP_DOT = True
+IS_SAVE_LABEL_AND_INFO = True
+IS_SAVE_RQA = True
+
+IS_SAVE_RP_IMAGE = False
+IS_SHOW_RP = False
+# =======================================================================================
+
+
+
+
 res = '../res/'
 MINUTE = 60
 
 # =============================== config for Data preprocress ===========================
 FOLDER_SAVE_ORIGIN_DATA = res + 'origin/'
-NUMBER_OF_TRAIN = 20
+NUMBER_OF_TRAIN_RECORD = 20
 PATH_RRI = '../res/rri/'
-FILE_RRI_NPY = PATH_RRI + 'rri.npy'  # [[[listRri], idMinute], [], ...]
+FILE_RRI_NPY = PATH_RRI + 'rri.npy'  # [[[listRri], recodeIndex], [], ...]
 FILE_RRI_LABEL = PATH_RRI + 'rri.lb.npy'
 
 NORMAL_LABEL = 0
 APNEA_LABEL = 1
 NONE_LABEL = 2
-# FOLDER_SAVE_PREPROCESS = res + 'dataPreProcess/'
-# FILE_RRI_NPY = FOLDER_SAVE_PREPROCESS + 'my_train_input.npy'
-# FILE_RRI_LABEL = FOLDER_SAVE_PREPROCESS + 'my_train_label.npy'
 
 NAME_OF_RECORD = ['a01', 'a02', 'a03', 'a04', 'a05',
                   'a06', 'a07', 'a08', 'a09', 'a10',
@@ -25,6 +34,7 @@ NAME_OF_RECORD = ['a01', 'a02', 'a03', 'a04', 'a05',
                   'a20', 'b05', 'c10'
                   ]
 # =======================================================================================
+
 
 
 # ==================================== config for RP ====================================
@@ -39,16 +49,8 @@ DISTANCE_NORM = 2
 IS_FIXED_EPSILON = False
 DOT_RATE = 0.2
 
-IS_SAVE_RP_DOT = True
-IS_SAVE_LABEL_AND_INFO = True
-IS_SAVE_RQA = True
-
-IS_SAVE_RP_IMAGE = False
-IS_SHOW_RP = False
-
 PATH_RP = res + 'rp/'
 PATH_RP_TRAIN = PATH_RP + 'train/'
-
 PATH_RP_TRAIN_NORMAL = PATH_RP_TRAIN + 'normalImage/'
 PATH_RP_TRAIN_APNEA = PATH_RP_TRAIN + 'apneaImage/'
 
