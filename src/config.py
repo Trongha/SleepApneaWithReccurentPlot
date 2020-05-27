@@ -1,14 +1,19 @@
 res = '../res/'
-FOLDER_SAVE_ORIGIN_DATA = res + 'origin/'
-NUMBER_OF_TRAIN = 20
+MINUTE = 60
 
 # =============================== config for Data preprocress ===========================
+FOLDER_SAVE_ORIGIN_DATA = res + 'origin/'
+NUMBER_OF_TRAIN = 20
+PATH_RRI = '../res/rri/'
+FILE_RRI_NPY = PATH_RRI + 'rri.npy'  # [[[listRri], idMinute], [], ...]
+FILE_RRI_LABEL = PATH_RRI + 'rri.lb.npy'
+
 NORMAL_LABEL = 0
 APNEA_LABEL = 1
 NONE_LABEL = 2
-FOLDER_SAVE_PREPROCESS = res + 'dataPreProcess/'
-RRI_DATA_FILE = FOLDER_SAVE_PREPROCESS + 'my_train_input.npy'
-RRI_LABEL_FILE = FOLDER_SAVE_PREPROCESS + 'my_train_label.npy'
+# FOLDER_SAVE_PREPROCESS = res + 'dataPreProcess/'
+# FILE_RRI_NPY = FOLDER_SAVE_PREPROCESS + 'my_train_input.npy'
+# FILE_RRI_LABEL = FOLDER_SAVE_PREPROCESS + 'my_train_label.npy'
 
 NAME_OF_RECORD = ['a01', 'a02', 'a03', 'a04', 'a05',
                   'a06', 'a07', 'a08', 'a09', 'a10',
@@ -25,7 +30,7 @@ NAME_OF_RECORD = ['a01', 'a02', 'a03', 'a04', 'a05',
 # ==================================== config for RP ====================================
 MIN_PERCENT_APNEA = 0.7
 RR_PER_RECURRENCE_PLOTS = 450
-WIN_STEP_SIZE = 10
+WIN_STEP_SIZE = 50
 DIMENSION = 6
 TAU = 10
 # ===> 1 Rp co 25 statePhase
@@ -62,7 +67,12 @@ RQA_SUFFIX = '.rqa'
 MY_LAMBDA = 80
 PATH_RQA = res + 'rqa/'
 PATH_RQA_TRAIN = PATH_RQA + 'train/'
+
+
 # =======================================================================================
+def getFileTxtRri(recordName):
+    return PATH_RRI + recordName + '.rri.txt'
+
 
 def getFileSaveRp(recordName):
     return PATH_RP_TRAIN + recordName + '.rp.npy'
@@ -79,6 +89,3 @@ def getFileSaveInfo(recordName):
 
 def getFileSaveRqa(recordName):
     return PATH_RP_TRAIN + recordName + '.rqa.npy'
-
-
-

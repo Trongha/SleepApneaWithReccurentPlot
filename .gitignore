@@ -6,3 +6,4 @@ src/HelloWorld.py
 src/HelloWorld.py
 *.npy
 *.pyc
+*.txt

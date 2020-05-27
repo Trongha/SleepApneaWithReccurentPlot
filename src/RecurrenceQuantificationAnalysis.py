@@ -220,8 +220,8 @@ if __name__ == '__main__':
     disNorm = config.DISTANCE_NORM
     myLambda = config.MY_LAMBDA
     # ============================================================================#
-    print('rri: ', config.RRI_DATA_FILE)
-    rriData, label = myUtil.readDataPreProcess(config.RRI_DATA_FILE, config.RRI_LABEL_FILE)
+    print('rri: ', config.FILE_RRI_NPY)
+    rriData, label = myUtil.loadRri(config.FILE_RRI_NPY, config.FILE_RRI_LABEL)
 
     print(len(rriData))
     print(len(label))

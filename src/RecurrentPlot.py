@@ -7,8 +7,8 @@ import src.MyUtil as myUtil
 
 # res = '../res/train/'
 res = '../output/'
-trainDataFile = res + 'my_train_input.npy'
-trainLabelFile = res + 'my_train_label.npy'
+trainDataFile = config.FILE_RRI_NPY
+trainLabelFile = config.FILE_RRI_LABEL
 
 
 def convert2StatePhase(timeSeries, dim, tau, returnType='array'):
@@ -134,25 +134,27 @@ def readData(dataFile, labelFile):
     trainData = []
     label = []
 
-    curId = None
+    curMinute = None
     curContainer = []
     curListLabel = []
+    sumRri = 0
     for i, originData in enumerate(trainDataOrigin):
         rri = originData[0]
-        id = originData[1]
-        if id == curId:
+        iMinute = originData[1]
+        sumRri += np.sum(rri)
+        print("sumRri: ", sumRri)
+        if iMinute == curMinute:
             curContainer = np.append(curContainer, np.array(rri))
             curListLabel += [labelOrigin[i] for numberOf in range(len(rri))]
         else:
-            if curId is not None:
+            if curMinute is not None:
                 trainData.append(curContainer)
                 label.append(curListLabel)
 
-            curId = id
+            curMinute = iMinute
             curContainer = rri
             curListLabel = [labelOrigin[i] for numberOf in range(len(rri))]
-            print("curId: ", curId)
-
+            print("curMinute: ", curMinute)
     trainData.append(curContainer)
     label.append(curListLabel)
     return trainData, label
@@ -174,6 +176,7 @@ if __name__ == '__main__':
     # ============================================================================#
 
     allData, allLabel = readData(trainDataFile, trainLabelFile)
+    print('stop')
     trainData = allData[0:config.NUMBER_OF_TRAIN]
     trainLabel = allLabel[0:config.NUMBER_OF_TRAIN]
 
@@ -201,8 +204,17 @@ if __name__ == '__main__':
                 end = start + winSize
                 # end = start + 100
                 timeSeries = data[start:end]
-                thisLabel = myUtil.getLabel(trainLabel[i_data][start:end])
-                timeSeries = convertSetNumber(timeSeries)
+
+                #================= get start of end minute ============================
+                startMinute = end
+                sumSec = data[end]
+                while sumSec + data[startMinute - 1] < config.MINUTE:
+                    startMinute -= 1
+                    sumSec += data[startMinute]
+                #======================================================================
+
+                thisLabel = myUtil.getLabel(trainLabel[i_data][startMinute:end])
+                # timeSeries = convertSetNumber(timeSeries)
                 binaryMatrix = makeRpMatrix(timeSeries, dim, tau, e, disNorm, isFixedEpsilon=isFixedEpsilon,
                                             dotRate=dotRate)
 
@@ -257,5 +269,5 @@ if __name__ == '__main__':
             print(" len of data < winSize({})".format(winSize))
 
     # np.save(config.FILE_RP_TRAIN_NORMAL, rpNormal)
-    
+
     # np.save(config.FILE_RP_TRAIN_APNEA, rpApnea)

@@ -6,6 +6,7 @@ from tqdm import tqdm
 import os
 
 from src import config as config
+from src import MyUtil as myUtil
 
 FS = 100.0
 
@@ -37,33 +38,10 @@ def interp_cubic_spline_qrs(qrs_index, qrs_amp, fs):
     qrs_interp = interpolate.splev(time_qrs_interp, tck, der=0)
     return time_qrs_interp, qrs_interp
 
+
 outPath = '../res/dataPreProcess/'
 dataPath = '../res/origin/'
-trainDataName = ['a01', 'a02', 'a03', 'a04', 'a05',
-                   'a06', 'a07', 'a08', 'a09', 'a10',
-                   'a11', 'a12', 'a13', 'a14', 'a15',
-                   'a16', 'a17', 'a18', 'a19',
-                   'b01', 'b02', 'b03', 'b04',
-                   'c01', 'c02', 'c03', 'c04', 'c05',
-                   'c06', 'c07', 'c08', 'c09',
-
-                   'a20', 'b05', 'c10'
-                 ]
-# test_data_name = ['a20', 'b05', 'c10']
-# age = [51, 38, 54, 52, 58,
-#        63, 44, 51, 52, 58,
-#        58, 52, 51, 51, 60,
-#        44, 40, 52, 55, 58,
-#        44, 53, 53, 42, 52,
-#        31, 37, 39, 41, 28,
-#        28, 30, 42, 37, 27]
-# sex = [1, 1, 1, 1, 1,
-#        1, 1, 1, 1, 1,
-#        1, 1, 1, 1, 1,
-#        1, 1, 1, 1, 1,
-#        0, 1, 1, 1, 1,
-#        1, 1, 1, 0, 0,
-#        0, 0, 1, 1, 1]
+trainDataName = config.NAME_OF_RECORD
 
 
 # Return the amplitude (max - min) of the RRi series: biên độ
@@ -91,44 +69,69 @@ MAX_RRI = 1.0 / (MIN_HR / 60.0) * 1000
 train_input_array = []
 train_label_array = []
 
-for dataIndex, dataName in enumerate(trainDataName):
-
-    print(dataName)
-    numberOfLabel = len(wfdb.rdann(os.path.join(dataPath, trainDataName[dataIndex]), 'apn').symbol)
-    signals, fields = wfdb.rdsamp(os.path.join(dataPath, trainDataName[dataIndex]))
+myUtil.createFolder(config.PATH_RRI)
+for recordIndex, recordName in enumerate(trainDataName):
+    print(recordName)
+    contentFileTxt = ""
+    numberOfLabel = len(wfdb.rdann(os.path.join(dataPath, trainDataName[recordIndex]), 'apn').symbol)
+    signals, fields = wfdb.rdsamp(os.path.join(dataPath, trainDataName[recordIndex]))
     for index in tqdm(range(1, numberOfLabel)):
         sampFrom = index * 60 * FS  # 60 seconds
         sampTo = sampFrom + 60 * FS  # 60 seconds
 
-        # array dữ liệu sạch
         # from -> to: 80 seconds
-        qrsAnn = wfdb.rdann(dataPath + trainDataName[dataIndex], 'qrs', sampfrom=sampFrom - (MARGIN * 100),
-                            sampto=sampTo + (MARGIN * 100)).sample
+        qrsAnn = wfdb.rdann(dataPath + trainDataName[recordIndex], 'qrs', sampfrom=sampFrom,
+                            sampto=sampTo).sample
+        # print(qrsAnn[:55], qrsAnn[-55:])
         # qrs_ann là thời gian
-        # plt.plot(qrs_ann, color='red')
-        # plt.show()
+
         # lấy label của dữ liệu apnea
         # from -> to: 6000đv - 1đv
-        apnAnn = wfdb.rdann(dataPath + trainDataName[dataIndex], 'apn', sampfrom=sampFrom,
+        apnAnn = wfdb.rdann(dataPath + trainDataName[recordIndex], 'apn', sampfrom=sampFrom,
                             sampto=sampTo - 1).symbol
-        # lấy tín hiệu ecg cao nhất
-        # qrs_amp = get_qrs_amp(signals, qrs_ann)
 
         # diff: out[i] = a[i+1] - a[i] -> Tinh khoang RR, rri la chuoi cac gia tri RR
+        # print('\nlen = ', qrsAnn[-1] - qrsAnn[0])
         rri = np.diff(qrsAnn)
-        rriByMs = rri.astype('float') / FS * 1000.0
+        # print("sum rri: ", np.sum(rri))
+        rriBySec = rri.astype('float') / FS
+        # print("sum rri2: ", np.sum(rriBySec))
 
-        if apnAnn[0] == 'N': # Normal
+        if apnAnn[0] == 'N':  # Normal
             label = config.NORMAL_LABEL
-        elif apnAnn[0] == 'A': # Apnea
+        elif apnAnn[0] == 'A':  # Apnea
             label = config.APNEA_LABEL
         else:
             label = config.NONE_LABEL
 
-        if (index in [1, 2, 3, 4, 5, numberOfLabel-1]):
-            print(dataIndex, rriByMs)
-        train_input_array.append([rriByMs, dataIndex, dataName])
+        # if index in [1, 2, 3, 4, 5, numberOfLabel - 1]:
+        #     print(dataIndex, rriBySec)
+        train_input_array.append([rriBySec, recordIndex])
         train_label_array.append(label)
+        if config.NORMAL_LABEL == label:
+            contentFileTxt += 'N, '
+        elif config.APNEA_LABEL == label:
+            contentFileTxt += 'A, '
+        else:
+            contentFileTxt += 'X, '
+        cc = 0
+        for subRri in rriBySec:
+            contentFileTxt += ' - ' + str(subRri)
+            cc += subRri
+        # print('sum: ', cc)
+        contentFileTxt += '\n'
+
+    fileTxt = config.getFileTxtRri(recordName)
+    print('write to file ', fileTxt)
+    file = open(fileTxt, 'w')
+    file.write(contentFileTxt)
+    file.close()
+    print('done write to file')
+
 # print("all len: ", len(train_input_array))
-np.save(outPath + 'my_train_input.npy', train_input_array)
-np.save(outPath + 'my_train_label.npy', train_label_array)
+# file = open("data2.txt", 'w')
+# file.write(content)
+# file.close()
+
+np.save(config.FILE_RRI_NPY, train_input_array)
+np.save(config.FILE_RRI_LABEL, train_label_array)
