@@ -142,7 +142,7 @@ if __name__ == '__main__':
             rpOfThisRecord = []
             rqaOfThisRecord = []
             labelOfThisRecord = []
-            infoOfthisRecord = []
+            infoOfThisRecord = []
             for start in tqdm(range(0, len(rriData) - winSize, winStep)):
                 end = start + winSize
                 # end = start + 100
@@ -158,11 +158,11 @@ if __name__ == '__main__':
                 # ======================================================================
                 thisLabel = myUtil.getLabel(trainLabel[recordIndex][startMinute:end])
                 labelOfThisRecord.append(thisLabel)
-                infoOfthisRecord.append([recordIndex, start, end])
+                infoOfThisRecord.append([recordIndex, start, end])
             # ------------------------- done for one record -------------------------
             recordName = config.NAME_OF_RECORD[recordIndex]
             print('done make rp for ', recordName)
-            saveSomething(recordName, labelOfThisRecord, infoOfthisRecord, rpOfThisRecord, rqaOfThisRecord)
+            saveSomething(recordName, labelOfThisRecord, infoOfThisRecord, rpOfThisRecord, rqaOfThisRecord)
         else:
             print(" len of data < winSize({})".format(winSize))
 
@@ -175,7 +175,7 @@ if __name__ == '__main__':
         rpOfThisRecord = []
         rqaOfThisRecord = []
         labelOfThisRecord = []
-        infoOfthisRecord = []
+        infoOfThisRecord = []
         listIndexStartMinute = allIndexStartMinute[recordIndex]
         for iMinute in tqdm(range(len(listIndexStartMinute) - 1, winSize, -1)):
             end = listIndexStartMinute[iMinute]
@@ -192,8 +192,8 @@ if __name__ == '__main__':
             thisLabel = allLabel[recordIndex][start + 1]
             # ======================================================================
             labelOfThisRecord.append(thisLabel)
-            infoOfthisRecord.append([recordIndex, start, end])
+            infoOfThisRecord.append([recordIndex, start, end])
         # ------------------------- done for one record -------------------------
         recordName = config.NAME_OF_RECORD[recordIndex]
         print('done make rp for ', recordName)
-        saveSomething(recordName, labelOfThisRecord, infoOfthisRecord, rpOfThisRecord, rqaOfThisRecord)
+        saveSomething(recordName, labelOfThisRecord, infoOfThisRecord, rpOfThisRecord, rqaOfThisRecord)
