@@ -28,7 +28,7 @@ def readRpBinary(recordName='a01', type='train'):
     # todo: use getFileName
     dataFile = config.getFileSaveRp(recordName, type)
     listDotOfRp = np.load(dataFile, allow_pickle=True)
-    listRpBinary = [rp.getRpBinaryFromListDot(listDot) for listDot in listDotOfRp]
+    listRpBinary = np.array([rp.getRpBinaryFromListDot(listDot) for listDot in listDotOfRp])
     label, info = getLabelAndInfo(recordName, type)
     return listRpBinary, label, info
 

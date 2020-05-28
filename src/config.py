@@ -10,6 +10,7 @@ IS_SHOW_RP = False
 
 res = '../res/'
 MINUTE = 60
+MAX_RRI_BY_SEC = 5
 
 # =============================== config for Data preprocress ===========================
 FOLDER_SAVE_ORIGIN_DATA = res + 'origin/'
