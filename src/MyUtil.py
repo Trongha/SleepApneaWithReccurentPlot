@@ -15,23 +15,29 @@ def createFolder(directory):
         print('Error: Creating directory. ' + directory)
 
 
-
-
-def getLabelAndInfo(recordName='a01'):
-    labelFile = config.getFileSaveLabel(recordName)
-    infoFile = config.getFileSaveInfo(recordName)
+def getLabelAndInfo(recordName='a01', type='train'):
+    labelFile = config.getFileSaveLabel(recordName, type)
+    infoFile = config.getFileSaveInfo(recordName, type)
     label = np.load(labelFile, allow_pickle=True)
     info = np.load(infoFile, allow_pickle=True)
     return label, info
 
 
-def readRpBinary(recordName='a01'):
+def readRpBinary(recordName='a01', type='train'):
     # todo: use getFileName
-    dataFile = config.getFileSaveRp(recordName)
+    dataFile = config.getFileSaveRp(recordName, type)
     listDotOfRp = np.load(dataFile, allow_pickle=True)
     listRpBinary = [rp.getRpBinaryFromListDot(listDot) for listDot in listDotOfRp]
-    label, info = getLabelAndInfo(recordName)
+    label, info = getLabelAndInfo(recordName, type)
     return listRpBinary, label, info
+
+
+def loadRqa(recordName='a01', type='train'):
+    # todo: use getFileName
+    dataFile = config.getFileSaveRqa(recordName, type)
+    listRqa = np.load(dataFile, allow_pickle=True)
+    label, info = getLabelAndInfo(recordName, type)
+    return listRqa, label, info
 
 
 def getLabel(labels):
