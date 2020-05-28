@@ -2,6 +2,7 @@ import os
 from typing import Union, Iterable
 
 import numpy as np
+from src import RecurrentPlot as rp
 from numpy.core._multiarray_umath import ndarray
 
 from src import config as config
