@@ -2,8 +2,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
 from src import config
-import src.RecurrenceQuantificationAnalysis as rqa
-import src.MyUtil as myUtil
+from src import RecurrenceQuantificationAnalysis as rqa
+from src import MyUtil as myUtil
 
 
 def convert2StatePhase(timeSeries, dim, tau, returnType='array'):
