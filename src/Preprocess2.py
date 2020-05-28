@@ -135,38 +135,38 @@ if __name__ == '__main__':
         myUtil.createFolder(config.PATH_RP_TRAIN_APNEA)
 
     # ============================= MAKE TRAIN DATA =========================
-    # for recordIndex, rriData in enumerate(trainData):
-    #     # if i_data > 1:
-    #     #     break
-    #     print('recordIndex: {}, len of record: {}, len of Label: {}'
-    #           .format(recordIndex, len(rriData), len(trainLabel[recordIndex])))
-    #     if len(rriData) > winSize:
-    #         rpOfThisRecord = []
-    #         rqaOfThisRecord = []
-    #         labelOfThisRecord = []
-    #         infoOfThisRecord = []
-    #         for start in tqdm(range(0, len(rriData) - winSize, winStep)):
-    #             end = start + winSize
-    #             # end = start + 100
-    #             timeSeries = rriData[start:end]
-    #             # timeSeries = convertSetNumber(timeSeries)
-    #             doSomething(timeSeries, rpOfThisRecord, rqaOfThisRecord)
-    #             # ================= get start of last minute ============================
-    #             startMinute = end
-    #             sumSec = rriData[end]
-    #             while sumSec + rriData[startMinute - 1] < config.MINUTE:
-    #                 startMinute -= 1
-    #                 sumSec += rriData[startMinute]
-    #             # ======================================================================
-    #             thisLabel = myUtil.getLabel(trainLabel[recordIndex][startMinute:end])
-    #             labelOfThisRecord.append(thisLabel)
-    #             infoOfThisRecord.append([recordIndex, start, end])
-    #         # ------------------------- done for one record -------------------------
-    #         recordName = config.NAME_OF_RECORD[recordIndex]
-    #         print('done make rp for ', recordName)
-    #         saveSomething(recordName, 'train', labelOfThisRecord, infoOfThisRecord, rpOfThisRecord, rqaOfThisRecord)
-    #     else:
-    #         print(" len of data < winSize({})".format(winSize))
+    for recordIndex, rriData in enumerate(trainData):
+        # if i_data > 1:
+        #     break
+        print('recordIndex: {}, len of record: {}, len of Label: {}'
+              .format(recordIndex, len(rriData), len(trainLabel[recordIndex])))
+        if len(rriData) > winSize:
+            rpOfThisRecord = []
+            rqaOfThisRecord = []
+            labelOfThisRecord = []
+            infoOfThisRecord = []
+            for start in tqdm(range(0, len(rriData) - winSize, winStep)):
+                end = start + winSize
+                # end = start + 100
+                timeSeries = rriData[start:end]
+                # timeSeries = convertSetNumber(timeSeries)
+                doSomething(timeSeries, rpOfThisRecord, rqaOfThisRecord)
+                # ================= get start of last minute ============================
+                startMinute = end
+                sumSec = rriData[end]
+                while sumSec + rriData[startMinute - 1] < config.MINUTE:
+                    startMinute -= 1
+                    sumSec += rriData[startMinute]
+                # ======================================================================
+                thisLabel = myUtil.getLabel(trainLabel[recordIndex][startMinute:end])
+                labelOfThisRecord.append(thisLabel)
+                infoOfThisRecord.append([recordIndex, start, end])
+            # ------------------------- done for one record -------------------------
+            recordName = config.NAME_OF_RECORD[recordIndex]
+            print('done make rp for ', recordName)
+            saveSomething(recordName, 'train', labelOfThisRecord, infoOfThisRecord, rpOfThisRecord, rqaOfThisRecord)
+        else:
+            print(" len of data < winSize({})".format(winSize))
 
     # ============================= MAKE TEST DATA =========================
     startTestRecordIndex = config.NUMBER_OF_TRAIN_RECORD
