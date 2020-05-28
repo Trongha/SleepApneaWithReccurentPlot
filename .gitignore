@@ -13,3 +13,5 @@ src/HelloWorld.py
 *.pyc
 *.pyc
 res/rp.rar
+res/*
+
