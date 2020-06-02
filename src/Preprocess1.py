@@ -46,8 +46,8 @@ minuteBiasArray = []
 myUtil.createFolder(config.PATH_RRI)
 
 for recordIndex, recordName in enumerate(trainDataName):
-    if recordIndex < 16:
-        continue
+    # if recordIndex < 16:
+    #     continue
 
     print(recordName)
     contentFileTxt = ""
@@ -135,11 +135,11 @@ print('done save rri\n'
 fileSaveBias = config.PATH_RRI + 'bias' + '.txt'
 file = open(fileSaveBias, 'w')
 for bias in minuteBiasArray:
-    file.write(bias)
+    file.write(str(bias))
 file.close()
 
 fileSaveException = config.PATH_RRI + 'exception' + '.txt'
 file = open(fileSaveException, 'w')
 for exception in exceptionRriArray:
-    file.write(exception)
+    file.write(str(exception))
 file.close()
