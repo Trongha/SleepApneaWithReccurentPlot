@@ -111,6 +111,7 @@ def rqaCalculate(rpBinaryMatrix, keyDot=1, lambd=8, typeReturn='array', showCRP=
         print("averageTime1, averageTime2", averageTime1, averageTime2)
 
     if typeReturn == 'array':
+        #######[0,   1,   2,    3,     4,         5,       6,    7,    8,   9,    10,          11]
         return [rr, det, lam, ratio, averageL, averageH, lmax, hmax, div, entr, averageTime1, averageTime2]
     if typeReturn == 'dict':
         return {

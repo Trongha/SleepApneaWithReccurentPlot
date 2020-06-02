@@ -1,5 +1,5 @@
 # ==================================== turn On - Off ====================================
-IS_SAVE_RP_DOT = True
+IS_SAVE_RP_DOT = False
 IS_SAVE_LABEL_AND_INFO = True
 IS_SAVE_RQA = True
 
@@ -10,7 +10,8 @@ IS_SHOW_RP = False
 
 res = '../res/'
 MINUTE = 60
-MAX_RRI_BY_SEC = 5
+MAX_RRI_BY_SEC = 3
+BIAS_MINUTE = 0.5
 
 # =============================== config for Data preprocress ===========================
 FOLDER_SAVE_ORIGIN_DATA = res + 'origin/'

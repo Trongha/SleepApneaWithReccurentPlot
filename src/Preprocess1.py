@@ -3,9 +3,12 @@ import numpy as np
 from scipy import interpolate
 from tqdm import tqdm
 import os
+from matplotlib import pyplot as plt
 
-from src import config as config
+from src import config
 from src import MyUtil as myUtil
+from src import RecurrentPlot as rp
+from src import RecurrenceQuantificationAnalysis as rqa
 
 FS = 100.0
 
@@ -35,22 +38,39 @@ MAX_HR = 300.0
 MIN_HR = 20.0
 MIN_RRI = 1.0 / (MAX_HR / 60.0) * 1000
 MAX_RRI = 1.0 / (MIN_HR / 60.0) * 1000
-train_input_array = []
-train_label_array = []
+trainInputArray = []
+trainLabelArray = []
+exceptionRriArray = []
+minuteBiasArray = []
 
 myUtil.createFolder(config.PATH_RRI)
+
 for recordIndex, recordName in enumerate(trainDataName):
+    if recordIndex < 16:
+        continue
+
     print(recordName)
     contentFileTxt = ""
     numberOfLabel = len(wfdb.rdann(os.path.join(dataPath, trainDataName[recordIndex]), 'apn').symbol)
     signals, fields = wfdb.rdsamp(os.path.join(dataPath, trainDataName[recordIndex]))
+
+    lastQrsOfPreMinute = None
     for index in tqdm(range(1, numberOfLabel)):
-        sampFrom = index * 60 * FS  # 60 seconds
-        sampTo = sampFrom + 60 * FS  # 60 seconds
+        # if index < 364:
+        #     continue
+
+        sampFrom = (index * 60 * FS) if lastQrsOfPreMinute is None else lastQrsOfPreMinute
+        sampTo = (index + 1) * 60 * FS  # 60 seconds
 
         # from -> to: 80 seconds
         qrsAnn = wfdb.rdann(dataPath + trainDataName[recordIndex], 'qrs', sampfrom=sampFrom,
                             sampto=sampTo).sample
+
+        # ecg = signals[qrsAnn]
+        # plt.plot(ecg)
+        # plt.show()
+        lastQrsOfPreMinute = qrsAnn[-1] if len(qrsAnn) > 0 else None
+
         # print(qrsAnn[:55], qrsAnn[-55:])
         # qrs_ann là thời gian
 
@@ -64,7 +84,17 @@ for recordIndex, recordName in enumerate(trainDataName):
         rri = np.diff(qrsAnn)
         # print("sum rri: ", np.sum(rri))
         rriBySec = rri.astype('float') / FS
+        # collect bias between one minute with sumRri in one label
+        minuteBiasArray.append(abs(config.MINUTE - np.sum(rriBySec)))
+
         # print("sum rri2: ", np.sum(rriBySec))
+        # print('index: ', index, 'rriSec: ', rriBySec)
+        if len(rriBySec) == 0:
+            print('len rri by sec == 0')
+            continue
+        if np.max(rriBySec) > config.MAX_RRI_BY_SEC:
+            print('\nException recordIndex: {} indexStart: {}, sampFrom: {}'.format(recordIndex, index, sampFrom))
+            exceptionRriArray.append(np.max(rriBySec))
 
         if apnAnn[0] == 'N':  # Normal
             label = config.NORMAL_LABEL
@@ -75,8 +105,8 @@ for recordIndex, recordName in enumerate(trainDataName):
 
         # if index in [1, 2, 3, 4, 5, numberOfLabel - 1]:
         #     print(dataIndex, rriBySec)
-        train_input_array.append([rriBySec, recordIndex])
-        train_label_array.append(label)
+        trainInputArray.append([rriBySec, recordIndex])
+        trainLabelArray.append(label)
 
         ########## write txt #########
         if config.NORMAL_LABEL == label:
@@ -85,6 +115,8 @@ for recordIndex, recordName in enumerate(trainDataName):
             contentFileTxt += 'A, '
         else:
             contentFileTxt += 'X, '
+        for item in rriBySec:
+            contentFileTxt += ',' + str(item)
         contentFileTxt += '\n'
 
     # ------------------ End preprocess 1 record ------------------
@@ -95,5 +127,19 @@ for recordIndex, recordName in enumerate(trainDataName):
     file.close()
     print('done write to file')
 
-np.save(config.FILE_RRI_NPY, train_input_array)
-np.save(config.FILE_RRI_LABEL, train_label_array)
+np.save(config.FILE_RRI_NPY, trainInputArray)
+np.save(config.FILE_RRI_LABEL, trainLabelArray)
+print('done save rri\n'
+      'save exception and info')
+
+fileSaveBias = config.PATH_RRI + 'bias' + '.txt'
+file = open(fileSaveBias, 'w')
+for bias in minuteBiasArray:
+    file.write(bias)
+file.close()
+
+fileSaveException = config.PATH_RRI + 'exception' + '.txt'
+file = open(fileSaveException, 'w')
+for exception in exceptionRriArray:
+    file.write(exception)
+file.close()

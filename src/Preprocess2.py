@@ -26,6 +26,7 @@ myLambda = config.MY_LAMBDA
 
 
 def loadRri(dataFile, labelFile):
+    print('load rri . . .')
     trainDataOrigin = np.load(dataFile, allow_pickle=True)
     labelOrigin = np.load(labelFile, allow_pickle=True)
 
@@ -38,7 +39,7 @@ def loadRri(dataFile, labelFile):
     curContainer = []
     curListLabel = []
     curListIndexStartMinute = []
-    for i, originData in enumerate(trainDataOrigin):
+    for i, originData in tqdm(enumerate(trainDataOrigin)):
         rri = originData[0]
         recordIndex = originData[1]
         if recordIndex == curRecordIndex:
@@ -47,17 +48,18 @@ def loadRri(dataFile, labelFile):
             curListLabel += [labelOrigin[i]] * len(rri)
         else:
             # curRecordIndex is not None when end 1 record
-            # or is None when start load
+            # curRecordIndex is None when start load
             if curRecordIndex is not None:
+                # curRecordIndex is not None
                 rriData.append(curContainer)
                 label.append(curListLabel)
                 indexWhereStartMinute.append(curListIndexStartMinute)
-
+            # curRecordIndex is None
             curRecordIndex = recordIndex
             curContainer = rri
             curListLabel = [labelOrigin[i]] * len(rri)
             curListIndexStartMinute = [0]
-            print("curRecordIndex: ", curRecordIndex)
+            print("\ncurRecordIndex: ", curRecordIndex)
 
     # push last record
     rriData.append(curContainer)
@@ -140,7 +142,7 @@ if __name__ == '__main__':
 
     numTrain = config.NUMBER_OF_TRAIN_RECORD
     # # ============================= MAKE TRAIN DATA =========================
-    # for recordIndex in range(numTrain, len(allData)):
+    # for recordIndex in range(0, numTrain):
     #     rriData = allData[recordIndex]
     #     # if i_data > 1:
     #     #     break
@@ -160,7 +162,7 @@ if __name__ == '__main__':
     #             # ================= get start of last minute ============================
     #             startMinute = end
     #             sumSec = rriData[end]
-    #             while sumSec + rriData[startMinute - 1] < config.MINUTE:
+    #             while sumSec + rriData[startMinute - 1] > config.MINUTE + config.BIAS_MINUTE:
     #                 startMinute -= 1
     #                 sumSec += rriData[startMinute]
     #             # ======================================================================
@@ -175,7 +177,8 @@ if __name__ == '__main__':
     #         print(" len of data < winSize({})".format(winSize))
 
     # ============================= MAKE TEST DATA =========================
-    for recordIndex in range(len(allData)):
+    # for recordIndex in range(numTrain, len(allData)):
+    for recordIndex in range(0, numTrain):
         rriData = allData[recordIndex]
         print('make Test recordIndex: {}, len of record: {}, len of Label: {}'
               .format(recordIndex, len(rriData), len(allLabel[recordIndex])))
