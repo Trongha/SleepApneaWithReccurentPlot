@@ -122,7 +122,7 @@ def saveData(recordName, type='train', labelContainer=None, infoContainer=None, 
             np.save(fileSaveRqa, rqaContainer)
 
 
-def makeTrainRp(allData, allLabel, startRecordIndex, endRecordIndex):
+def makeTrainData(allData, allLabel, startRecordIndex, endRecordIndex):
     # # ============================= MAKE TRAIN DATA =========================
     for recordIndex in range(startRecordIndex, endRecordIndex):
         rriData = allData[recordIndex]
@@ -136,6 +136,7 @@ def makeTrainRp(allData, allLabel, startRecordIndex, endRecordIndex):
             labelOfThisRecord = []
             infoOfThisRecord = []
 
+            recordName = config.NAME_OF_RECORD[recordIndex]
             pbar = tqdm(range(0, len(rriData) - winSize, winStep))
             for start in pbar:
                 pbar.set_description('Record index: {}'.format(recordIndex))
@@ -154,12 +155,61 @@ def makeTrainRp(allData, allLabel, startRecordIndex, endRecordIndex):
                 thisLabel = myUtil.getLabel(allLabel[recordIndex][startMinute:end])
                 labelOfThisRecord.append(thisLabel)
                 infoOfThisRecord.append([recordIndex, start, end])
+
+                if start % 50 == 0:
+                    saveData(recordName, 'train', labelOfThisRecord, infoOfThisRecord, rpOfThisRecord, rqaOfThisRecord)
+                    print('done save file {} at index: {}', recordName, start)
+
             # ------------------------- done for one record -------------------------
-            recordName = config.NAME_OF_RECORD[recordIndex]
             print('done make rp for ', recordName)
             saveData(recordName, 'train', labelOfThisRecord, infoOfThisRecord, rpOfThisRecord, rqaOfThisRecord)
         else:
             print(" len of data < winSize({})".format(winSize))
+
+
+def makeTestData(allData, allLabel, allIndexStartMinute, startRecordIndex, endRecordIndex):
+    # ============================= MAKE TEST DATA =========================
+    for recordIndex in range(startRecordIndex, endRecordIndex):
+        rriData = allData[recordIndex]
+        print('make Test recordIndex: {}, len of record: {}, len of Label: {}'
+              .format(recordIndex, len(rriData), len(allLabel[recordIndex])))
+        rpOfThisRecord = []
+        rqaOfThisRecord = []
+        labelOfThisRecord = []
+        infoOfThisRecord = []
+        listIndexStartMinute = allIndexStartMinute[recordIndex]
+
+        recordName = config.NAME_OF_RECORD[recordIndex]
+        pbar = tqdm(range(len(listIndexStartMinute) - 1, 0, -1))
+        for iMinute in pbar:
+            pbar.set_description('makeTest Record index: {}'.format(recordIndex))
+            end = listIndexStartMinute[iMinute]
+            start = end - winSize
+            if start < 0:
+                break
+            timeSeries = rriData[start:end]
+            # ========= Check max rri =========
+            if np.max(timeSeries) > config.MAX_RRI_BY_SEC:
+                print('rri out of range index start: {}, rri: {}'.format(start, np.max(timeSeries)))
+                continue
+            # timeSeries = convertSetNumber(timeSeries)
+            makeRpAndRqa(timeSeries, rpOfThisRecord, rqaOfThisRecord)
+            # ================= get Label ==========================================
+            startLastMinute = listIndexStartMinute[iMinute - 1]
+            listLabelInLastMinute = allLabel[recordIndex][startLastMinute:end]
+            if len(np.unique(listLabelInLastMinute)) != 1:
+                print('error label test: ', recordIndex, start, end, listLabelInLastMinute)
+            thisLabel = listLabelInLastMinute[1]
+            # ======================================================================
+            labelOfThisRecord.append(thisLabel)
+            infoOfThisRecord.append([recordIndex, start, end])
+
+            if start % 50 == 0:
+                saveData(recordName, 'test', labelOfThisRecord, infoOfThisRecord, rpOfThisRecord, rqaOfThisRecord)
+                print('//-------------- done save file {} at index: {} --------------//', recordName, start)
+        # ------------------------- done for one record -------------------------
+        print('done make rp for ', recordName)
+        saveData(recordName, 'test', labelOfThisRecord, infoOfThisRecord, rpOfThisRecord, rqaOfThisRecord)
 
 
 if __name__ == '__main__':
@@ -185,32 +235,42 @@ if __name__ == '__main__':
             myUtil.createFolder(config.PATH_RP_TRAIN_APNEA)
 
         numTrain = config.NUMBER_OF_TRAIN_RECORD
-        # # ============================= MAKE TRAIN DATA WITH --MULTIPLE THREAD-- =========================
-        myThreads = []
-        numThread = 5
-        numOfRecordPerThread = numRecordLoaded//numThread
+
+        numProcess = 10
+        # # ============================= MAKE TEST DATA --MULTIPLE THREAD-- =========================
+        myProcesses = []
+        numOfRecordPerThread = numRecordLoaded // numProcess
         for startRecordIndex in range(0, numRecordLoaded, numOfRecordPerThread):
-            endRecordIndex = startRecordIndex+numOfRecordPerThread
+            endRecordIndex = startRecordIndex + numOfRecordPerThread
             print('start index: ', startRecordIndex)
             if endRecordIndex > numRecordLoaded:
                 endRecordIndex = numRecordLoaded
-            t = multiprocessing.Process(target=makeTrainRp, args=(allData, allLabel, startRecordIndex, endRecordIndex))
-            myThreads.append(t)
-        for i, myThread in enumerate(myThreads):
-            myThread.start()
-        for i, myThread in enumerate(myThreads):
-            myThread.join()
+            myProc = multiprocessing.Process(target=makeTestData,
+                                             args=(
+                                             allData, allLabel, allIndexStartMinute, startRecordIndex, endRecordIndex))
+            myProcesses.append(myProc)
+        for i, myProcess in enumerate(myProcesses):
+            myProcess.start()
+        for i, myProcess in enumerate(myProcesses):
+            myProcess.join()
 
-        # t1 = Thread(target=makeTrainRp, args=(allData, allLabel, 0, 5))
-        # t2 = Thread(target=makeTrainRp, args=(allData, allLabel, 5, 10))
-        # t1.start()
-        # t2.start()
-        # t1.join()
-        # t2.join()
+        # ============================= MAKE TRAIN DATA WITH --MULTIPLE THREAD-- =========================
+        myProcesses = []
+        numOfRecordPerThread = numRecordLoaded // numProcess
+        for startRecordIndex in range(0, numRecordLoaded, numOfRecordPerThread):
+            endRecordIndex = startRecordIndex + numOfRecordPerThread
+            print('start index: ', startRecordIndex)
+            if endRecordIndex > numRecordLoaded:
+                endRecordIndex = numRecordLoaded
+            myProc = multiprocessing.Process(target=makeTrainData,
+                                             args=(allData, allLabel, startRecordIndex, endRecordIndex))
+            myProcesses.append(myProc)
+        for i, myProcess in enumerate(myProcesses):
+            myProcess.start()
+        for i, myProcess in enumerate(myProcesses):
+            myProcess.join()
+
         print('done make train')
-
-
-
 
         # # ============================= MAKE TRAIN DATA =========================
         # for recordIndex in range(0, numTrain):
@@ -247,39 +307,39 @@ if __name__ == '__main__':
         #     else:
         #         print(" len of data < winSize({})".format(winSize))
 
-        # ============================= MAKE TEST DATA =========================
-        # for recordIndex in range(numTrain, len(allData)):
-        for recordIndex in range(0, numTrain):
-            rriData = allData[recordIndex]
-            print('make Test recordIndex: {}, len of record: {}, len of Label: {}'
-                  .format(recordIndex, len(rriData), len(allLabel[recordIndex])))
-            rpOfThisRecord = []
-            rqaOfThisRecord = []
-            labelOfThisRecord = []
-            infoOfThisRecord = []
-            listIndexStartMinute = allIndexStartMinute[recordIndex]
-            for iMinute in tqdm(range(len(listIndexStartMinute) - 1, 0, -1)):
-                end = listIndexStartMinute[iMinute]
-                start = end - winSize
-                if start < 0:
-                    break
-                timeSeries = rriData[start:end]
-                # ========= Check max rri =========
-                if np.max(timeSeries) > config.MAX_RRI_BY_SEC:
-                    print('rri out of range index start: {}, rri: {}'.format(start, np.max(timeSeries)))
-                    continue
-                # timeSeries = convertSetNumber(timeSeries)
-                makeRpAndRqa(timeSeries, rpOfThisRecord, rqaOfThisRecord)
-                # ================= get Label ==========================================
-                startLastMinute = listIndexStartMinute[iMinute - 1]
-                listLabelInLastMinute = allLabel[recordIndex][startLastMinute:end]
-                if len(np.unique(listLabelInLastMinute)) != 1:
-                    print('error label test: ', recordIndex, start, end, listLabelInLastMinute)
-                thisLabel = listLabelInLastMinute[1]
-                # ======================================================================
-                labelOfThisRecord.append(thisLabel)
-                infoOfThisRecord.append([recordIndex, start, end])
-            # ------------------------- done for one record -------------------------
-            recordName = config.NAME_OF_RECORD[recordIndex]
-            print('done make rp for ', recordName)
-            saveData(recordName, 'test', labelOfThisRecord, infoOfThisRecord, rpOfThisRecord, rqaOfThisRecord)
+        # # ============================= MAKE TEST DATA =========================
+        # # for recordIndex in range(numTrain, len(allData)):
+        # for recordIndex in range(0, numTrain):
+        #     rriData = allData[recordIndex]
+        #     print('make Test recordIndex: {}, len of record: {}, len of Label: {}'
+        #           .format(recordIndex, len(rriData), len(allLabel[recordIndex])))
+        #     rpOfThisRecord = []
+        #     rqaOfThisRecord = []
+        #     labelOfThisRecord = []
+        #     infoOfThisRecord = []
+        #     listIndexStartMinute = allIndexStartMinute[recordIndex]
+        #     for iMinute in tqdm(range(len(listIndexStartMinute) - 1, 0, -1)):
+        #         end = listIndexStartMinute[iMinute]
+        #         start = end - winSize
+        #         if start < 0:
+        #             break
+        #         timeSeries = rriData[start:end]
+        #         # ========= Check max rri =========
+        #         if np.max(timeSeries) > config.MAX_RRI_BY_SEC:
+        #             print('rri out of range index start: {}, rri: {}'.format(start, np.max(timeSeries)))
+        #             continue
+        #         # timeSeries = convertSetNumber(timeSeries)
+        #         makeRpAndRqa(timeSeries, rpOfThisRecord, rqaOfThisRecord)
+        #         # ================= get Label ==========================================
+        #         startLastMinute = listIndexStartMinute[iMinute - 1]
+        #         listLabelInLastMinute = allLabel[recordIndex][startLastMinute:end]
+        #         if len(np.unique(listLabelInLastMinute)) != 1:
+        #             print('error label test: ', recordIndex, start, end, listLabelInLastMinute)
+        #         thisLabel = listLabelInLastMinute[1]
+        #         # ======================================================================
+        #         labelOfThisRecord.append(thisLabel)
+        #         infoOfThisRecord.append([recordIndex, start, end])
+        #     # ------------------------- done for one record -------------------------
+        #     recordName = config.NAME_OF_RECORD[recordIndex]
+        #     print('done make rp for ', recordName)
+        #     saveData(recordName, 'test', labelOfThisRecord, infoOfThisRecord, rpOfThisRecord, rqaOfThisRecord)

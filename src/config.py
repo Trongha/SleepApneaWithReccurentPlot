@@ -24,6 +24,7 @@ NORMAL_LABEL = 0
 APNEA_LABEL = 1
 NONE_LABEL = 2
 
+# --------------  NUMBER_OF = 35  --------------
 NAME_OF_RECORD = ['a01', 'a02', 'a03', 'a04', 'a05',
                   'a06', 'a07', 'a08', 'a09', 'a10',
                   'a11', 'a12', 'a13', 'a14', 'a15',
