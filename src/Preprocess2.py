@@ -206,7 +206,7 @@ def makeTestData(allData, allLabel, allIndexStartMinute, startRecordIndex, endRe
 
             if start % 50 == 0:
                 saveData(recordName, 'test', labelOfThisRecord, infoOfThisRecord, rpOfThisRecord, rqaOfThisRecord)
-                print('//-------------- done save file {} at index: {} --------------//', recordName, start)
+                print('//-------------- done save file {} at index: {} --------------//'.format(recordName, start))
         # ------------------------- done for one record -------------------------
         print('done make rp for ', recordName)
         saveData(recordName, 'test', labelOfThisRecord, infoOfThisRecord, rpOfThisRecord, rqaOfThisRecord)
