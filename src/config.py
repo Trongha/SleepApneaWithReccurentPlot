@@ -1,5 +1,5 @@
 # ==================================== turn On - Off ====================================
-IS_SAVE_RP_DOT = False
+IS_SAVE_RP_DOT = True
 IS_SAVE_LABEL_AND_INFO = True
 IS_SAVE_RQA = True
 
