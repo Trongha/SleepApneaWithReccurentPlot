@@ -1,6 +1,7 @@
 import numpy as np
 from tqdm import tqdm
 from threading import Thread
+import multiprocessing
 
 from src import config
 from src import MyUtil as myUtil
@@ -189,7 +190,7 @@ if __name__ == '__main__':
             print('start index: ', startRecordIndex)
             if endRecordIndex > numRecordLoaded:
                 endRecordIndex = numRecordLoaded
-            t = Thread(target=makeTrainRp, args=(allData, allLabel, startRecordIndex, endRecordIndex))
+            t = multiprocessing.Process(target=makeTrainRp, args=(allData, allLabel, startRecordIndex, endRecordIndex))
             myThreads.append(t)
         for i, myThread in enumerate(myThreads):
             myThread.start()
