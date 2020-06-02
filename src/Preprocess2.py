@@ -1,5 +1,6 @@
 import numpy as np
 from tqdm import tqdm
+from tqdm import trange
 from threading import Thread
 import multiprocessing
 
@@ -134,7 +135,10 @@ def makeTrainRp(allData, allLabel, startRecordIndex, endRecordIndex):
             rqaOfThisRecord = []
             labelOfThisRecord = []
             infoOfThisRecord = []
-            for start in tqdm(range(0, len(rriData) - winSize, winStep)):
+
+            pbar = tqdm(range(0, len(rriData) - winSize, winStep))
+            for start in pbar:
+                pbar.set_description('Record index: {}'.format(recordIndex))
                 end = start + winSize
                 # end = start + 100
                 timeSeries = rriData[start:end]

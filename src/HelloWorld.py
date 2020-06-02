@@ -7,6 +7,7 @@ from src import RecurrenceQuantificationAnalysis as rqa
 
 import time
 from threading import Thread
+from multiprocessing import Process
 
 for i in range(0, 45, 5):
     print('r: ', i)
@@ -20,8 +21,8 @@ def testThread(name='T1', sleepTime=1):
 
 
 if __name__ == '__main__':
-    t1 = Thread(target=testThread, args=('T1', 1))
-    t2 = Thread(target=testThread, args=('T2', 2))
+    t1 = Process(target=testThread, args=('T1', 1))
+    t2 = Process(target=testThread, args=('T2', 2))
     t1.start()
     t2.start()
     t1.join()
