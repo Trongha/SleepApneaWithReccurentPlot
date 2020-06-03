@@ -20,6 +20,11 @@ def testThread(name='T1', sleepTime=1):
         time.sleep(sleepTime)
 
 
+import datetime
+
+currentDT = datetime.datetime.now()
+print(str(currentDT))
+
 if __name__ == '__main__':
     t1 = Process(target=testThread, args=('T1', 1))
     t2 = Process(target=testThread, args=('T2', 2))
