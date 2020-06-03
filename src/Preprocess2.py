@@ -1,3 +1,4 @@
+# from numba import jit, cuda
 import numpy as np
 from tqdm import tqdm
 from tqdm import trange
@@ -163,9 +164,9 @@ def makeTrainData(allData, allLabel, listIndexOfRecord):
             print(" len of data < winSize({})".format(winSize))
 
 
-def makeTestData(allData, allLabel, allIndexStartMinute, startRecordIndex, endRecordIndex):
+def makeTestData(allData, allLabel, allIndexStartMinute, listIndexOfRecord):
     # ============================= MAKE TEST DATA =========================
-    for recordIndex in range(startRecordIndex, endRecordIndex):
+    for recordIndex in listIndexOfRecord:
         rriData = allData[recordIndex]
         print('make Test recordIndex: {}, len of record: {}, len of Label: {}'
               .format(recordIndex, len(rriData), len(allLabel[recordIndex])))
@@ -232,43 +233,47 @@ if __name__ == '__main__':
 
         numTrain = config.NUMBER_OF_TRAIN_RECORD
 
-        numProcess = 7
-        # # ============================= MAKE TEST DATA --MULTIPLE THREAD-- =========================
-        # myProcesses = []
-        # numOfRecordPerThread = numRecordLoaded // numProcess
-        # for startRecordIndex in range(0, numRecordLoaded, numOfRecordPerThread):
-        #     endRecordIndex = startRecordIndex + numOfRecordPerThread
-        #     print('start index: ', startRecordIndex)
-        #     if endRecordIndex > numRecordLoaded:
-        #         endRecordIndex = numRecordLoaded
-        #     myProc = multiprocessing.Process(target=makeTestData,
-        #                                      args=(
-        #                                      allData, allLabel, allIndexStartMinute, startRecordIndex, endRecordIndex))
-        #     myProcesses.append(myProc)
-        # for i, myProcess in enumerate(myProcesses):
-        #     myProcess.start()
-        # for i, myProcess in enumerate(myProcesses):
-        #     myProcess.join()
-
-        # ============================= MAKE TRAIN DATA WITH --MULTIPLE THREAD-- =========================
+        numProcess = 4
+        # ============================= MAKE TEST DATA --MULTIPLE THREAD-- =========================
         myProcesses = []
+
+
+        # @jit(target='cuda')
+
+
         for soDu in range(0, numProcess):
             listIndexOfRecord = []
             for index in range(numRecordLoaded):
-                if index%numProcess == soDu:
+                if index % numProcess == soDu:
                     listIndexOfRecord.append(index)
-            myProc = multiprocessing.Process(target=makeTrainData,
-                                             args=(allData, allLabel, listIndexOfRecord))
+            myProc = multiprocessing.Process(target=makeTestData,
+                                             args=(allData, allLabel, allIndexStartMinute, listIndexOfRecord))
             myProcesses.append(myProc)
         for i, myProcess in enumerate(myProcesses):
             myProcess.start()
         for i, myProcess in enumerate(myProcesses):
             myProcess.join()
 
-        print('done make train')
-        import datetime
-        currentDT = datetime.datetime.now()
-        print(str(currentDT))
+        # ============================= MAKE TRAIN DATA WITH --MULTIPLE THREAD-- =========================
+        # myProcesses = []
+        # for soDu in range(0, numProcess):
+        #     listIndexOfRecord = []
+        #     for index in range(numRecordLoaded):
+        #         if index % numProcess == soDu:
+        #             listIndexOfRecord.append(index)
+        #     myProc = multiprocessing.Process(target=makeTrainData,
+        #                                      args=(allData, allLabel, listIndexOfRecord))
+        #     myProcesses.append(myProc)
+        # for i, myProcess in enumerate(myProcesses):
+        #     myProcess.start()
+        # for i, myProcess in enumerate(myProcesses):
+        #     myProcess.join()
+        #
+        # print('done make train')
+        # import datetime
+        #
+        # currentDT = datetime.datetime.now()
+        # print(str(currentDT))
 
         # # ============================= MAKE TRAIN DATA =========================
         # for recordIndex in range(0, numTrain):
