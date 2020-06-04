@@ -34,13 +34,14 @@ def readRpBinary(recordName='a01', type='train'):
     return listRpBinary, label, info
 
 
-def loadRpByCluster(numberOfCluster, indexCluster, type='train'):
+def loadRpByCluster(numberOfCluster, indexCluster, listRecordNames=None, type='train'):
     # todo: use getFileName
-    recordNames = config.NAME_OF_RECORD
+    if listRecordNames is None:
+        listRecordNames = config.NAME_OF_RECORD
     listRpBinary = None
     listLabel = None
     listInfo = None
-    for recordName in recordNames:
+    for recordName in listRecordNames:
         print('_____ read rp from record ', recordName)
         # startTime = datetime.datetime.now()
         # print('startTime: ', startTime)

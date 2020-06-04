@@ -14,7 +14,9 @@ for i in range(0, 10):
     startTime = time.time()
     print(str(startTime))
     print('=======> Load cluster ', i, ' . . . ')
-    listRp, listLabel, _ = myUtil.loadRpByCluster(10, 2, 'train')
+
+    recordNames = config.NAME_OF_RECORD[1:5]
+    listRp, listLabel, _ = myUtil.loadRpByCluster(10, 2, listRecordNames=recordNames, type='train')
     print(listRp.shape)
     print(listLabel.shape)
     endTime = time.time()
