@@ -34,7 +34,36 @@ def readRpBinary(recordName='a01', type='train'):
     return listRpBinary, label, info
 
 
+def loadRpByCluster(numberOfCluster, indexCluster, type='train'):
+    # todo: use getFileName
+    recordNames = config.NAME_OF_RECORD
+    listRpBinary = None
+    listLabel = None
+    listInfo = None
+    for recordName in recordNames:
+        print('_____ read rp from record ', recordName)
+        # startTime = datetime.datetime.now()
+        # print('startTime: ', startTime)
 
+        dataFile = config.getFileSaveRp(recordName, type)
+        allRpDot = np.load(dataFile, allow_pickle=True)
+        label, info = getLabelAndInfo(recordName, type)
+
+        for i in range(indexCluster, len(allRpDot), numberOfCluster):
+            # Lấy các i thỏa mãn chia cho numberOfCluster có số dư là indexCluster
+            rpDot = allRpDot[i]
+            rpBinary = rp.getRpBinaryFromListDot(rpDot)
+            if listRpBinary is not None:
+                listRpBinary = np.append(listRpBinary, [rpBinary], axis=0)
+                listLabel = np.append(listLabel, [label[i]], axis=0)
+                listInfo = np.append(listInfo, [info[i]], axis=0)
+            else:
+                listRpBinary = np.array([rpBinary])
+                listLabel = np.array([label[i]])
+                listInfo = np.array([info[i]])
+        # endTime = datetime.datetime.now()
+        # print('duration load: ', endTime - statr)
+    return listRpBinary, listLabel, listInfo
 
 
 def loadRqa(recordName='a01', type='train'):

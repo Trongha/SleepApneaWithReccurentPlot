@@ -1,4 +1,3 @@
-# from numba import jit, cuda
 import numpy as np
 from tqdm import tqdm
 from tqdm import trange
@@ -72,7 +71,7 @@ def loadRri(dataFile, labelFile):
     return rriData, label, indexWhereStartMinute
 
 
-def makeRpAndRqa(timeSeries, rpContainer=None, rqaContainer=None):
+def makeRpAndRqa(timeSeries, rpContainer=None, rqaContainer=None, thisLabel=None, recordIndex=None, start=None, end=None):
     # Make rp, rqa from timeSeries
     binaryMatrix = rp.makeRpMatrix(timeSeries, dim, tau, e, disNorm, isFixedEpsilon=isFixedEpsilon,
                                    dotRate=dotRate)
