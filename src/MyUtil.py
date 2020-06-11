@@ -35,12 +35,11 @@ def readRpBinary(recordName='a01', type='train'):
 
 
 def loadRpByCluster(numberOfCluster, indexCluster, listRecordNames=None, type='train'):
-    # todo: use getFileName
     if listRecordNames is None:
         listRecordNames = config.NAME_OF_RECORD
-    listRpBinary = None
-    listLabel = None
-    listInfo = None
+    listRpBinary = []
+    listLabel = []
+    listInfo = []
     for recordName in listRecordNames:
         print('_____ read rp from record ', recordName)
         # startTime = datetime.datetime.now()
@@ -54,17 +53,13 @@ def loadRpByCluster(numberOfCluster, indexCluster, listRecordNames=None, type='t
             # Lấy các i thỏa mãn chia cho numberOfCluster có số dư là indexCluster
             rpDot = allRpDot[i]
             rpBinary = rp.getRpBinaryFromListDot(rpDot)
-            if listRpBinary is not None:
-                listRpBinary = np.append(listRpBinary, [rpBinary], axis=0)
-                listLabel = np.append(listLabel, [label[i]], axis=0)
-                listInfo = np.append(listInfo, [info[i]], axis=0)
-            else:
-                listRpBinary = np.array([rpBinary])
-                listLabel = np.array([label[i]])
-                listInfo = np.array([info[i]])
+
+            listRpBinary.append(rpBinary)
+            listLabel.append(label[i])
+            listInfo.append(info[i])
         # endTime = datetime.datetime.now()
-        # print('duration load: ', endTime - statr)
-    return listRpBinary, listLabel, listInfo
+        # print('duration load: ', endTime - start)
+    return np.array(listRpBinary), np.array(listLabel), np.array(listInfo)
 
 
 def loadRqa(recordName='a01', type='train'):
