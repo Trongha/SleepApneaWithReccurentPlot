@@ -59,20 +59,15 @@ for recordIndex, recordName in enumerate(trainDataName):
     for index in tqdm(range(1, numberOfLabel)):
         sampFrom = (index * 60 * FS) if lastQrsOfPreMinute is None else lastQrsOfPreMinute
         sampTo = (index + 1) * 60 * FS  # 60 seconds
+
+        # qrsAnn là thời điểm có qrs
         # from -> to: 80 seconds
         qrsAnn = wfdb.rdann(dataPath + trainDataName[recordIndex], 'qrs', sampfrom=sampFrom,
                             sampto=sampTo).sample
 
-        # ecg = signals[qrsAnn]
-        # plt.plot(ecg)
-        # plt.show()
         lastQrsOfPreMinute = qrsAnn[-1] if len(qrsAnn) > 0 else None
 
-        # print(qrsAnn[:55], qrsAnn[-55:])
-        # qrsAnn là thời gian
-
         # lấy label của dữ liệu apnea
-        # from -> to: 6000đv - 1đv
         apnAnn = wfdb.rdann(dataPath + trainDataName[recordIndex], 'apn', sampfrom=sampFrom,
                             sampto=sampTo - 1).symbol
 
@@ -82,6 +77,7 @@ for recordIndex, recordName in enumerate(trainDataName):
         # diff: out[i] = a[i+1] - a[i] -> Tinh khoang RR, rri la chuoi cac gia tri RR
         rri = np.diff(rMoments)  # unit: 10ms
         rriBySec = rri.astype('float') / FS
+
         # collect bias between one minute with sumRri in one label
         minuteBiasArray.append(abs(config.MINUTE - np.sum(rriBySec)))
 
