@@ -3,6 +3,7 @@ from tqdm import tqdm
 from tqdm import trange
 from threading import Thread
 import multiprocessing
+import datetime
 
 from src import config
 from src import MyUtil as myUtil
@@ -144,6 +145,10 @@ def makeTrainData(allData, allLabel, listIndexOfRecord):
                 # end = start + 100
                 timeSeries = rriData[start:end]
                 # timeSeries = convertSetNumber(timeSeries)
+                if np.max(timeSeries) > config.MAX_RRI_BY_SEC:
+                    print('rri out of range index start: {}, rri: {}'.format(start, np.max(timeSeries)))
+                    continue
+
                 makeRpAndRqa(timeSeries, rpOfThisRecord, rqaOfThisRecord)
                 # ================= get start of last minute ============================
                 startMinute = end
@@ -213,6 +218,7 @@ if __name__ == '__main__':
 
     allData, allLabel, allIndexStartMinute = loadRri(trainDataFile, trainLabelFile)
     numRecordLoaded = len(allData)
+
     if numRecordLoaded != len(config.NAME_OF_RECORD):
         print('len error: \n'
               'num record loaded: {}\n'
@@ -222,57 +228,61 @@ if __name__ == '__main__':
         for iRecord in range(len(allData)):
             print(iRecord, ' >3: ', np.count_nonzero(allData[iRecord] > 3))
 
-        numberOfTrainRecord = config.NUMBER_OF_TRAIN_RECORD
-
         myUtil.createFolder(config.PATH_RP_TRAIN)
         myUtil.createFolder(config.PATH_RP_TEST)
         if config.IS_SAVE_RP_IMAGE:
             myUtil.createFolder(config.PATH_RP_TRAIN_NORMAL)
             myUtil.createFolder(config.PATH_RP_TRAIN_APNEA)
 
-        numTrain = config.NUMBER_OF_TRAIN_RECORD
 
         numProcess = 4
+
         # ============================= MAKE TEST DATA --MULTIPLE THREAD-- =========================
-        myProcesses = []
-
-
-        # @jit(target='cuda')
-
-
-        for soDu in range(0, numProcess):
+        timeStartMakeTest = datetime.datetime.now()
+        print('start make test: ', timeStartMakeTest)
+        listProcesses = []
+        for iProcess in range(0, numProcess):
             listIndexOfRecord = []
-            for index in range(numRecordLoaded):
-                if index % numProcess == soDu:
-                    listIndexOfRecord.append(index)
+            for index in range(iProcess, numRecordLoaded, numProcess):
+                # Lấy các index thỏa mãn điều kiện: chia cho iProcess có số dư là iProcess
+                listIndexOfRecord.append(index)
             myProc = multiprocessing.Process(target=makeTestData,
                                              args=(allData, allLabel, allIndexStartMinute, listIndexOfRecord))
-            myProcesses.append(myProc)
-        for i, myProcess in enumerate(myProcesses):
+            listProcesses.append(myProc)
+
+        for iProcess, myProcess in enumerate(listProcesses):
             myProcess.start()
-        for i, myProcess in enumerate(myProcesses):
+        for iProcess, myProcess in enumerate(listProcesses):
             myProcess.join()
 
+        currentDT = datetime.datetime.now()
+        print('\n_____Done make Test'
+              '\n_____time:     ', currentDT,
+              '\n_____Duration: ', currentDT - timeStartMakeTest)
+
         # ============================= MAKE TRAIN DATA WITH --MULTIPLE THREAD-- =========================
-        # myProcesses = []
-        # for soDu in range(0, numProcess):
-        #     listIndexOfRecord = []
-        #     for index in range(numRecordLoaded):
-        #         if index % numProcess == soDu:
-        #             listIndexOfRecord.append(index)
-        #     myProc = multiprocessing.Process(target=makeTrainData,
-        #                                      args=(allData, allLabel, listIndexOfRecord))
-        #     myProcesses.append(myProc)
-        # for i, myProcess in enumerate(myProcesses):
-        #     myProcess.start()
-        # for i, myProcess in enumerate(myProcesses):
-        #     myProcess.join()
-        #
-        # print('done make train')
-        # import datetime
-        #
-        # currentDT = datetime.datetime.now()
-        # print(str(currentDT))
+        timeStartMakeTrain = datetime.datetime.now()
+        print('start make test: ', timeStartMakeTrain)
+        listProcesses = []
+        for iProcess in range(0, numProcess):
+            listIndexOfRecord = []
+            for index in range(iProcess, numRecordLoaded, numProcess):
+                # Lấy các index thỏa mãn điều kiện: chia cho iProcess có số dư là iProcess
+                listIndexOfRecord.append(index)
+            myProc = multiprocessing.Process(target=makeTrainData,
+                                             args=(allData, allLabel, listIndexOfRecord))
+            listProcesses.append(myProc)
+
+        for i, myProcess in enumerate(listProcesses):
+            myProcess.start()
+        for i, myProcess in enumerate(listProcesses):
+            myProcess.join()
+
+        currentDT = datetime.datetime.now()
+        print('\n_____Done make Test'
+              '\n_____time:     ', currentDT,
+              '\n_____Duration: ', currentDT - timeStartMakeTrain)
+
 
         # # ============================= MAKE TRAIN DATA =========================
         # for recordIndex in range(0, numTrain):
