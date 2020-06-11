@@ -18,19 +18,23 @@ trainDataName = config.NAME_OF_RECORD
 
 
 # Return the amplitude (max - min) of the RRi series: biên độ
-def get_qrs_amp(ecg, qrs):
+def getListMomentOfR(ecg, qrs):
     interval = int(FS * 0.250)
-    qrs_amp = []
+    rWave = []
 
     for index in range(len(qrs)):
-        curr_qrs = qrs[index]
-        amp = np.max(ecg[curr_qrs - interval:curr_qrs + interval])
-        # thisSignal = ecg[curr_qrs-interval:curr_qrs+interval]
+        curQrs = qrs[index]
+        # print(curQrs)
+        startTime = curQrs - interval  # unit: 10ms
+        endTime = curQrs + interval  # unit: 10ms
+        ecgHaveR = ecg[startTime:endTime]
+        amp = np.max(ecgHaveR)  # đỉnh sóng
+        rMoment = startTime + np.where(ecgHaveR == amp)[0][0]  # use [0][0] because np.where return 1 tuple has len == 1
+        # thisSignal = ecg[curQrs-interval:curQrs+interval]
         # plt.plot(thisSignal)
         # plt.show()
-        qrs_amp.append(amp)
-
-    return qrs_amp
+        rWave.append(rMoment)
+    return rWave
 
 
 MARGIN = 10
@@ -46,9 +50,6 @@ minuteBiasArray = []
 myUtil.createFolder(config.PATH_RRI)
 
 for recordIndex, recordName in enumerate(trainDataName):
-    # if recordIndex < 16:
-    #     continue
-
     print(recordName)
     contentFileTxt = ""
     numberOfLabel = len(wfdb.rdann(os.path.join(dataPath, trainDataName[recordIndex]), 'apn').symbol)
@@ -56,12 +57,8 @@ for recordIndex, recordName in enumerate(trainDataName):
 
     lastQrsOfPreMinute = None
     for index in tqdm(range(1, numberOfLabel)):
-        # if index < 364:
-        #     continue
-
         sampFrom = (index * 60 * FS) if lastQrsOfPreMinute is None else lastQrsOfPreMinute
         sampTo = (index + 1) * 60 * FS  # 60 seconds
-
         # from -> to: 80 seconds
         qrsAnn = wfdb.rdann(dataPath + trainDataName[recordIndex], 'qrs', sampfrom=sampFrom,
                             sampto=sampTo).sample
@@ -79,10 +76,11 @@ for recordIndex, recordName in enumerate(trainDataName):
         apnAnn = wfdb.rdann(dataPath + trainDataName[recordIndex], 'apn', sampfrom=sampFrom,
                             sampto=sampTo - 1).symbol
 
+        # Lấy các thời điểm của đỉnh R theo đơn vị 10ms
+        rMoments = getListMomentOfR(signals, qrsAnn)
+
         # diff: out[i] = a[i+1] - a[i] -> Tinh khoang RR, rri la chuoi cac gia tri RR
-        # print('\nlen = ', qrsAnn[-1] - qrsAnn[0])
-        rri = np.diff(qrsAnn)
-        # print("sum rri: ", np.sum(rri))
+        rri = np.diff(rMoments)  # unit: 10ms
         rriBySec = rri.astype('float') / FS
         # collect bias between one minute with sumRri in one label
         minuteBiasArray.append(abs(config.MINUTE - np.sum(rriBySec)))
