@@ -199,7 +199,7 @@ def getPDiagonalLengthDot(rpBinaryMatrix, high_rpBinaryMatrix=None, len_rpBinary
                     y += 1
                 numDot = y - start + 1
                 if numDot < N:
-                    length = numDot - 1
+                    length = numDot - 1  # length chính xác là tổng khoảng cách giữa các chấm, nên phải -1
                     pl[length] += 1
                     if length > lmax:
                         lmax = length

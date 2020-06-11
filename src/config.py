@@ -66,9 +66,11 @@ RQA_SUFFIX = '.rqa'
 
 
 # ==================================== config for RQA ====================================
-MY_LAMBDA = 80
+MY_LAMBDA = 3  # trong code dùng >= lambda
 PATH_RQA = res + 'rqa/'
 PATH_RQA_TRAIN = PATH_RQA + 'train/'
+
+
 # =======================================================================================
 
 
