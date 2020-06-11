@@ -69,7 +69,7 @@ for recordIndex, recordName in enumerate(trainDataName):
         lastQrsOfPreMinute = qrsAnn[-1] if len(qrsAnn) > 0 else None
 
         # print(qrsAnn[:55], qrsAnn[-55:])
-        # qrs_ann là thời gian
+        # qrsAnn là thời gian
 
         # lấy label của dữ liệu apnea
         # from -> to: 6000đv - 1đv
