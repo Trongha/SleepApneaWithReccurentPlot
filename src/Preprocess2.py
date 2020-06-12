@@ -72,7 +72,8 @@ def loadRri(dataFile, labelFile):
     return rriData, label, indexWhereStartMinute
 
 
-def makeRpAndRqa(timeSeries, rpContainer=None, rqaContainer=None, thisLabel=None, recordIndex=None, start=None, end=None):
+def makeRpAndRqa(timeSeries, rpContainer=None, rqaContainer=None, thisLabel=None, recordIndex=None, start=None,
+                 end=None):
     # Make rp, rqa from timeSeries
     binaryMatrix = rp.makeRpMatrix(timeSeries, dim, tau, e, disNorm, isFixedEpsilon=isFixedEpsilon,
                                    dotRate=dotRate)
@@ -187,6 +188,7 @@ def makeTestData(allData, allLabel, allIndexStartMinute, listIndexOfRecord):
             end = listIndexStartMinute[iMinute]
             start = end - winSize
             if start < 0:
+                print('start < 0 : ', start)
                 break
             timeSeries = rriData[start:end]
             # ========= Check max rri =========
@@ -204,10 +206,6 @@ def makeTestData(allData, allLabel, allIndexStartMinute, listIndexOfRecord):
             # ======================================================================
             labelOfThisRecord.append(thisLabel)
             infoOfThisRecord.append([recordIndex, start, end])
-
-            if start % 50 == 0:
-                saveData(recordName, 'test', labelOfThisRecord, infoOfThisRecord, rpOfThisRecord, rqaOfThisRecord)
-                print('//-------------- done save file {} at index: {} --------------//'.format(recordName, start))
         # ------------------------- done for one record -------------------------
         print('done make rp for ', recordName)
         saveData(recordName, 'test', labelOfThisRecord, infoOfThisRecord, rpOfThisRecord, rqaOfThisRecord)
@@ -225,18 +223,18 @@ if __name__ == '__main__':
               'num record name:   {}\n'
               .format(numRecordLoaded, len(config.NAME_OF_RECORD)))
     else:
-        for iRecord in range(len(allData)):
-            print(iRecord, ' >3: ', np.count_nonzero(allData[iRecord] > 3))
+        for iRecord, nameRecord in enumerate(config.NAME_OF_RECORD):
+            print(nameRecord, ' >3: ', np.count_nonzero(allData[iRecord] > 3))
+            print(nameRecord, ' >5: ', np.count_nonzero(allData[iRecord] > 5))
 
+        print('stop')
         myUtil.createFolder(config.PATH_RP_TRAIN)
         myUtil.createFolder(config.PATH_RP_TEST)
         if config.IS_SAVE_RP_IMAGE:
             myUtil.createFolder(config.PATH_RP_TRAIN_NORMAL)
             myUtil.createFolder(config.PATH_RP_TRAIN_APNEA)
 
-
-        numProcess = 4
-
+        numProcess = 1
         # ============================= MAKE TEST DATA --MULTIPLE THREAD-- =========================
         timeStartMakeTest = datetime.datetime.now()
         print('start make test: ', timeStartMakeTest)
@@ -256,33 +254,32 @@ if __name__ == '__main__':
             myProcess.join()
 
         currentDT = datetime.datetime.now()
-        print('\n_____Done make Test'
+        print('\n_____Done make Train'
               '\n_____time:     ', currentDT,
               '\n_____Duration: ', currentDT - timeStartMakeTest)
 
         # ============================= MAKE TRAIN DATA WITH --MULTIPLE THREAD-- =========================
-        timeStartMakeTrain = datetime.datetime.now()
-        print('start make test: ', timeStartMakeTrain)
-        listProcesses = []
-        for iProcess in range(0, numProcess):
-            listIndexOfRecord = []
-            for index in range(iProcess, numRecordLoaded, numProcess):
-                # Lấy các index thỏa mãn điều kiện: chia cho iProcess có số dư là iProcess
-                listIndexOfRecord.append(index)
-            myProc = multiprocessing.Process(target=makeTrainData,
-                                             args=(allData, allLabel, listIndexOfRecord))
-            listProcesses.append(myProc)
-
-        for i, myProcess in enumerate(listProcesses):
-            myProcess.start()
-        for i, myProcess in enumerate(listProcesses):
-            myProcess.join()
-
-        currentDT = datetime.datetime.now()
-        print('\n_____Done make Test'
-              '\n_____time:     ', currentDT,
-              '\n_____Duration: ', currentDT - timeStartMakeTrain)
-
+        # timeStartMakeTrain = datetime.datetime.now()
+        # print('start make test: ', timeStartMakeTrain)
+        # listProcesses = []
+        # for iProcess in range(0, numProcess):
+        #     listIndexOfRecord = []
+        #     for index in range(iProcess, numRecordLoaded, numProcess):
+        #         # Lấy các index thỏa mãn điều kiện: chia cho iProcess có số dư là iProcess
+        #         listIndexOfRecord.append(index)
+        #     myProc = multiprocessing.Process(target=makeTrainData,
+        #                                      args=(allData, allLabel, listIndexOfRecord))
+        #     listProcesses.append(myProc)
+        #
+        # for i, myProcess in enumerate(listProcesses):
+        #     myProcess.start()
+        # for i, myProcess in enumerate(listProcesses):
+        #     myProcess.join()
+        #
+        # currentDT = datetime.datetime.now()
+        # print('\n_____Done make Train'
+        #       '\n_____time:     ', currentDT,
+        #       '\n_____Duration: ', currentDT - timeStartMakeTrain)
 
         # # ============================= MAKE TRAIN DATA =========================
         # for recordIndex in range(0, numTrain):

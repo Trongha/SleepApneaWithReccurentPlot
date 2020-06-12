@@ -14,7 +14,7 @@ FS = 100.0
 
 outPath = '../res/dataPreProcess/'
 dataPath = '../res/origin/'
-trainDataName = config.NAME_OF_RECORD
+allRecordName = config.NAME_OF_RECORD
 
 
 # Return the amplitude (max - min) of the RRi series: biên độ
@@ -24,15 +24,11 @@ def getListMomentOfR(ecg, qrs):
 
     for index in range(len(qrs)):
         curQrs = qrs[index]
-        # print(curQrs)
         startTime = curQrs - interval  # unit: 10ms
         endTime = curQrs + interval  # unit: 10ms
         ecgHaveR = ecg[startTime:endTime]
         amp = np.max(ecgHaveR)  # đỉnh sóng
         rMoment = startTime + np.where(ecgHaveR == amp)[0][0]  # use [0][0] because np.where return 1 tuple has len == 1
-        # thisSignal = ecg[curQrs-interval:curQrs+interval]
-        # plt.plot(thisSignal)
-        # plt.show()
         rWave.append(rMoment)
     return rWave
 
@@ -49,11 +45,11 @@ minuteBiasArray = []
 
 myUtil.createFolder(config.PATH_RRI)
 
-for recordIndex, recordName in enumerate(trainDataName):
+for recordIndex, recordName in enumerate(allRecordName):
     print(recordName)
     contentFileTxt = ""
-    numberOfLabel = len(wfdb.rdann(os.path.join(dataPath, trainDataName[recordIndex]), 'apn').symbol)
-    signals, fields = wfdb.rdsamp(os.path.join(dataPath, trainDataName[recordIndex]))
+    numberOfLabel = len(wfdb.rdann(os.path.join(dataPath, allRecordName[recordIndex]), 'apn').symbol)
+    signals, fields = wfdb.rdsamp(os.path.join(dataPath, allRecordName[recordIndex]))
 
     lastQrsOfPreMinute = None
     for index in tqdm(range(1, numberOfLabel)):
@@ -62,13 +58,13 @@ for recordIndex, recordName in enumerate(trainDataName):
 
         # qrsAnn là thời điểm có qrs
         # from -> to: 80 seconds
-        qrsAnn = wfdb.rdann(dataPath + trainDataName[recordIndex], 'qrs', sampfrom=sampFrom,
+        qrsAnn = wfdb.rdann(dataPath + allRecordName[recordIndex], 'qrs', sampfrom=sampFrom,
                             sampto=sampTo).sample
 
         lastQrsOfPreMinute = qrsAnn[-1] if len(qrsAnn) > 0 else None
 
         # lấy label của dữ liệu apnea
-        apnAnn = wfdb.rdann(dataPath + trainDataName[recordIndex], 'apn', sampfrom=sampFrom,
+        apnAnn = wfdb.rdann(dataPath + allRecordName[recordIndex], 'apn', sampfrom=sampFrom,
                             sampto=sampTo - 1).symbol
 
         # Lấy các thời điểm của đỉnh R theo đơn vị 10ms
