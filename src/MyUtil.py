@@ -50,7 +50,7 @@ def loadRpByCluster(numberOfCluster, indexCluster, listRecordNames=None, type='t
         label, info = getLabelAndInfo(recordName, type)
 
         for i in range(indexCluster, len(allRpDot), numberOfCluster):
-            # Lấy các i thỏa mãn chia cho numberOfCluster có số dư là indexCluster
+            # Lấy các i thỏa mãn dk: chia cho numberOfCluster có số dư là indexCluster
             rpDot = allRpDot[i]
             rpBinary = rp.getRpBinaryFromListDot(rpDot)
 
@@ -66,7 +66,7 @@ def loadRqa(recordName='a01', type='train'):
     # todo: use getFileName
     dataFile = config.getFileSaveRqa(recordName, type)
     listRqa = np.load(dataFile, allow_pickle=True)
-    indexColOfRqaParam = [1, 2, 4, 5, 6, 7, 9, 10, 11]
+    indexColOfRqaParam = config.RQA_DATA_USE_COL
     listRqa = listRqa[:, indexColOfRqaParam]
     label, info = getLabelAndInfo(recordName, type)
     return listRqa, label, info

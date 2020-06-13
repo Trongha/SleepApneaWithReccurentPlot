@@ -214,9 +214,14 @@ def makeTestData(allData, allLabel, allIndexStartMinute, listIndexOfRecord):
 if __name__ == '__main__':
     print("Preprocess2.py run main")
 
-    allData, allLabel, allIndexStartMinute = loadRri(trainDataFile, trainLabelFile)
-    numRecordLoaded = len(allData)
+    allRri, allLabel, allIndexStartMinute = loadRri(trainDataFile, trainLabelFile)
+    # allRri: [[rri1, rri2, rri3, ...], [list rri of record 2], [list rri of record 3], ...]
+    # allLabel: [[lb1, lb2, lb3, ...], [list label of record 2], [list label of record 3], ...]
+    # allIndexStartMinute: [[0, start minute 2, start minute 2, ...],
+    #                       [list index where start minute of record 2],
+    #                       [list index where start minute of record 3], ...]
 
+    numRecordLoaded = len(allRri)
     if numRecordLoaded != len(config.NAME_OF_RECORD):
         print('len error: \n'
               'num record loaded: {}\n'
@@ -224,8 +229,8 @@ if __name__ == '__main__':
               .format(numRecordLoaded, len(config.NAME_OF_RECORD)))
     else:
         for iRecord, nameRecord in enumerate(config.NAME_OF_RECORD):
-            print(nameRecord, ' >3: ', np.count_nonzero(allData[iRecord] > 3))
-            print(nameRecord, ' >5: ', np.count_nonzero(allData[iRecord] > 5))
+            print(nameRecord, ' >3: ', np.count_nonzero(allRri[iRecord] > 3))
+            print(nameRecord, ' >5: ', np.count_nonzero(allRri[iRecord] > 5))
 
         print('stop')
         myUtil.createFolder(config.PATH_RP_TRAIN)
@@ -245,7 +250,7 @@ if __name__ == '__main__':
                 # Lấy các index thỏa mãn điều kiện: chia cho iProcess có số dư là iProcess
                 listIndexOfRecord.append(index)
             myProc = multiprocessing.Process(target=makeTestData,
-                                             args=(allData, allLabel, allIndexStartMinute, listIndexOfRecord))
+                                             args=(allRri, allLabel, allIndexStartMinute, listIndexOfRecord))
             listProcesses.append(myProc)
 
         for iProcess, myProcess in enumerate(listProcesses):

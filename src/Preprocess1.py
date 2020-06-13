@@ -17,18 +17,15 @@ dataPath = '../res/origin/'
 allRecordName = config.NAME_OF_RECORD
 
 
-# Return the amplitude (max - min) of the RRi series: biên độ
-def getListMomentOfR(ecg, qrs):
+def getListMomentOfR(ecg, listQrs):
     interval = int(FS * 0.250)
     rWave = []
-
-    for index in range(len(qrs)):
-        curQrs = qrs[index]
-        startTime = curQrs - interval  # unit: 10ms
-        endTime = curQrs + interval  # unit: 10ms
-        ecgHaveR = ecg[startTime:endTime]
+    for qrs in listQrs:
+        startQrs = qrs - interval  # unit: 10ms
+        endQrs = qrs + interval  # unit: 10ms
+        ecgHaveR = ecg[startQrs:endQrs]
         amp = np.max(ecgHaveR)  # đỉnh sóng
-        rMoment = startTime + np.where(ecgHaveR == amp)[0][0]  # use [0][0] because np.where return 1 tuple has len == 1
+        rMoment = startQrs + np.where(ecgHaveR == amp)[0][0]
         rWave.append(rMoment)
     return rWave
 
@@ -49,6 +46,7 @@ for recordIndex, recordName in enumerate(allRecordName):
     print(recordName)
     contentFileTxt = ""
     numberOfLabel = len(wfdb.rdann(os.path.join(dataPath, allRecordName[recordIndex]), 'apn').symbol)
+
     signals, fields = wfdb.rdsamp(os.path.join(dataPath, allRecordName[recordIndex]))
 
     lastQrsOfPreMinute = None
@@ -69,7 +67,6 @@ for recordIndex, recordName in enumerate(allRecordName):
 
         # Lấy các thời điểm của đỉnh R theo đơn vị 10ms
         rMoments = getListMomentOfR(signals, qrsAnn)
-
         # diff: out[i] = a[i+1] - a[i] -> Tinh khoang RR, rri la chuoi cac gia tri RR
         rri = np.diff(rMoments)  # unit: 10ms
         rriBySec = rri.astype('float') / FS

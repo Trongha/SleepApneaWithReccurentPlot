@@ -69,6 +69,7 @@ RQA_SUFFIX = '.rqa'
 MY_LAMBDA = 3  # trong code dùng >= lambda
 PATH_RQA = res + 'rqa/'
 PATH_RQA_TRAIN = PATH_RQA + 'train/'
+RQA_DATA_USE_COL = [1, 2, 4, 5, 6, 7, 9, 10, 11]
 
 
 # =======================================================================================
