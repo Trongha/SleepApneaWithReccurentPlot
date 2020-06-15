@@ -6,39 +6,37 @@ from src import RecurrenceQuantificationAnalysis as rqa
 from src import MyUtil as myUtil
 
 
-def convert2StatePhase(timeSeries, dim, tau, returnType='array'):
+def convert2StatePhase(series, m, t, returnType='array'):
     # v: vecto
-    # dim là số chiều (số phần tử)
-    # tau là bước nhảy
-    # returnType: kiểu trả về
+    # d là số chiều (số phần tử)
+    # t là bước nhảy
+    # returnType là kiểu trả về
     #	array: trả về python array
     #	np.array: trả về mảng numpy
     if returnType == 'array':
-        return [timeSeries[start: start + (dim - 1) * tau + 1: tau]
-                for start in range(len(timeSeries) - (dim - 1) * tau)]
+        return [series[start: start + (m - 1) * t + 1: t]
+                for start in range(len(series) - (m - 1) * t)]
     if returnType == 'np.array':
         import numpy as np
-        return np.array([timeSeries[start: start + (dim - 1) * tau + 1: tau]
-                         for start in range(len(timeSeries) - (dim - 1) * tau)])
+        return np.array([series[start: start + (m - 1) * t + 1: t]
+                         for start in range(len(series) - (m - 1) * t)])
 
 
-def makeRpMatrix(timeSeries, dim=5, tau=2, epsilon=0.09, distNorm=2, isFixedEpsilon=True, dotRate=0.2):
-    # tách statephases
-    statePhase = convert2StatePhase(timeSeries, dim, tau, 'np.array')
+def makeRpMatrix(series, m=6, t=10, epsilon=0.09, distNorm=2,
+                 isFixedEpsilon=True, dotRate=0.2):
+    statePhase = convert2StatePhase(series, m, t, 'np.array')
 
     from scipy.spatial.distance import cdist
     # rDist là ma trận khoảng cách
     # cdist là hàm trong scipy.spatial.distance.cdist
-    # minkowski là cách tính
-    # p là norm
-    # y là train: đánh số từ trên xuống dưới
-    # x là test
+    # minkowski là cách tính khoảng cách
     rDist = cdist(statePhase, statePhase, 'minkowski', p=distNorm)
 
     if isFixedEpsilon:
         rBinary = np.array((rDist < epsilon) + 0)
         return rBinary
     else:
+        # use FAN
         for i in range(rDist.shape[0]):
             row = rDist[i]
             rDist[i] = getBinaryByRow(row, dotRate)
@@ -107,6 +105,9 @@ def convertSetNumber(Set, minOfSet=0, maxOfSet=0, newMinOfSet=0, newMaxOfSet=1):
 
 def getDotOfRpBinary(rpBinary, keyDot=1):
     dots = []
+    # dots: [[index of dot 1, index of dot 2, index of dot 3, ...],
+    #        [list index of all dot in row 2],
+    #        [list index of all dot in row 3],...]
     for row in rpBinary:
         dots.append([i for i, x in enumerate(row) if x == keyDot])
     return dots
@@ -153,4 +154,3 @@ def readData(dataFile, labelFile):
     trainData.append(curContainer)
     label.append(curListLabel)
     return trainData, label
-

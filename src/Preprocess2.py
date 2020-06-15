@@ -125,11 +125,9 @@ def saveData(recordName, type='train', labelContainer=None, infoContainer=None, 
 
 
 def makeTrainData(allData, allLabel, listIndexOfRecord):
-    # # ============================= MAKE TRAIN DATA =========================
+    # # ===================== MAKE TRAIN DATA ===================
     for recordIndex in listIndexOfRecord:
         rriData = allData[recordIndex]
-        # if i_data > 1:
-        #     break
         print('make train recordIndex: {}, len of record: {}, len of Label: {}'
               .format(recordIndex, len(rriData), len(allLabel[recordIndex])))
         if len(rriData) > winSize:
@@ -195,7 +193,6 @@ def makeTestData(allData, allLabel, allIndexStartMinute, listIndexOfRecord):
             if np.max(timeSeries) > config.MAX_RRI_BY_SEC:
                 print('rri out of range index start: {}, rri: {}'.format(start, np.max(timeSeries)))
                 continue
-            # timeSeries = convertSetNumber(timeSeries)
             makeRpAndRqa(timeSeries, rpOfThisRecord, rqaOfThisRecord)
             # ================= get Label ==========================================
             startLastMinute = listIndexStartMinute[iMinute - 1]
@@ -239,8 +236,9 @@ if __name__ == '__main__':
             myUtil.createFolder(config.PATH_RP_TRAIN_NORMAL)
             myUtil.createFolder(config.PATH_RP_TRAIN_APNEA)
 
-        numProcess = 1
-        # ============================= MAKE TEST DATA --MULTIPLE THREAD-- =========================
+        import multiprocessing
+        numProcess = 5
+        # ============================= MAKE TEST DATA --MULTIPLE PROCESSES-- =========================
         timeStartMakeTest = datetime.datetime.now()
         print('start make test: ', timeStartMakeTest)
         listProcesses = []
@@ -253,9 +251,9 @@ if __name__ == '__main__':
                                              args=(allRri, allLabel, allIndexStartMinute, listIndexOfRecord))
             listProcesses.append(myProc)
 
-        for iProcess, myProcess in enumerate(listProcesses):
+        for myProcess in listProcesses:
             myProcess.start()
-        for iProcess, myProcess in enumerate(listProcesses):
+        for myProcess in listProcesses:
             myProcess.join()
 
         currentDT = datetime.datetime.now()
@@ -263,7 +261,8 @@ if __name__ == '__main__':
               '\n_____time:     ', currentDT,
               '\n_____Duration: ', currentDT - timeStartMakeTest)
 
-        # ============================= MAKE TRAIN DATA WITH --MULTIPLE THREAD-- =========================
+
+        # ============================= MAKE TRAIN DATA WITH --MULTIPLE PROCESSES-- =========================
         # timeStartMakeTrain = datetime.datetime.now()
         # print('start make test: ', timeStartMakeTrain)
         # listProcesses = []

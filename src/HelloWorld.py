@@ -16,26 +16,44 @@ from multiprocessing import Process
 # print('record for train: ', recordNameForTrain)
 # print('record for test: ', recordNameForTest)
 
-a = [10, 2, 4, 10, 5, 2, 10, 3, 4, 10, 10]
-a = np.array(a)
-
-print(a[4: 7])
-myMax = np.max(a[4: 7])
-print(myMax)
-cc1 = np.where(a == myMax)
-print(cc1[0].shape)
-print(cc1)
-cc = np.where(a[4: 7] == myMax)
+# a = [10, 2, 4, 10, 5, 2, 10, 3, 4, 10, 10]
+# a = np.array(a)
+#
+# print(a[4: 7])
+# myMax = np.max(a[4: 7])
+# print(myMax)
+# cc1 = np.where(a == myMax)
+# print(cc1[0].shape)
+# print(cc1)
+# cc = np.where(a[4: 7] == myMax)
 # print(cc)
 
 # print('where: ', cc)
-# for recordName in recordNames:
-#     label, _ = myUtil.getLabelAndInfo(recordName, 'test')
-#     unique, count = np.unique(label, return_counts=True)
-#     print('recordName: ', recordName, ' --- label unique: ', dict(zip(unique, count)))
+
+recordNames = config.NAME_OF_RECORD
+for recordName in recordNames:
+    start = datetime.datetime.now()
+    label, _ = myUtil.getLabelAndInfo(recordName, 'test')
+    unique, count = np.unique(label, return_counts=True)
+    print('recordName: ', recordName, ' --- label unique: ', dict(zip(unique, count)))
+
+    end = datetime.datetime.now()
+    logFile = 'time.txt'
+    file = open(logFile, 'w+')
+    content = "start: {}\n" \
+              "end:   {}\n" \
+              "duration: {}\n" \
+              "".format(start, end, end - start)
+    file.write(content)
+    file.close()
+
+
+
+
 
 #
 # for i in range(0, 10):
+
 #     startTime = time.time()
 #     print(str(startTime))
 #     print('=======> Load cluster ', i, ' . . . ')

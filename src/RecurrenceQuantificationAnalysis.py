@@ -11,9 +11,11 @@ def getRQA(TimeSeries, dim=5, tau=2, epsilon=0.09, lambd=2, distNorm=1,
     if len(TimeSeries) > (dim - 1) * tau + 1:
         norm01TimeSeries = rp.convertSetNumber(TimeSeries)
 
-        r_Binary = rp.makeRpMatrix(norm01TimeSeries, dim=dim, tau=tau, epsilon=epsilon, distNorm=distNorm)
+        r_Binary = rp.makeRpMatrix(norm01TimeSeries,
+                                   m=dim, t=tau, epsilon=epsilon, distNorm=distNorm)
 
-        return rqaCalculate(r_Binary, keyDot=1, lambd=lambd, typeReturn=typeReturn, showCRP=showCRP)
+        return rqaCalculate(r_Binary, keyDot=1, lambd=lambd,
+                            typeReturn=typeReturn, showCRP=showCRP)
 
     return None
 
@@ -23,15 +25,6 @@ def rqaCalculate(rpBinaryMatrix, keyDot=1, lambd=8, typeReturn='array', showCRP=
 
     len_rpBinaryMatrix = int(np.size(rpBinaryMatrix[0]))
     N = high_rpBinaryMatrix = int(np.size(rpBinaryMatrix) / len_rpBinaryMatrix)
-
-    # content = []
-    # for y in range(high_rpBinaryMatrix):
-    #     s = ";".join(str(i) for i in rpBinaryMatrix[y])
-    #     s += "\n"
-    #     content.append(s)
-    # print(content)
-
-    # myCrpFunctions.writeContentToFile('rqaOut.csv', content)
 
     rr = 0
     det = 0
@@ -46,10 +39,9 @@ def rqaCalculate(rpBinaryMatrix, keyDot=1, lambd=8, typeReturn='array', showCRP=
     # Duyệt các đường cao
     ph, hmax, averageTime1, averageTime2 = getPverticalLengthDot(rpBinaryMatrix, high_rpBinaryMatrix,
                                                                  len_rpBinaryMatrix, keyDot=keyDot)
-
     # Đếm số đường chéo theo độ dài
-    pl, lmax = getPDiagonalLengthDot(rpBinaryMatrix, high_rpBinaryMatrix, len_rpBinaryMatrix, keyDot=keyDot)
-
+    pl, lmax = getPDiagonalLengthDot(rpBinaryMatrix, high_rpBinaryMatrix,
+                                     len_rpBinaryMatrix, keyDot=keyDot)
     num_L = 0
     num_H = 0
     sum_Well_L = 0

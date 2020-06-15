@@ -72,18 +72,42 @@ def loadRqa(recordName='a01', type='train'):
     return listRqa, label, info
 
 
+def loadAllRqa(recordNameForTest, recordNameForTrain=None):
+    allRecordNames = config.NAME_OF_RECORD
+    if recordNameForTrain is None:
+        recordNameForTrain = [recordName
+                              for recordName in allRecordNames
+                              if recordName not in recordNameForTest]
+    print('record for train: ', recordNameForTrain)
+    print('record for test: ', recordNameForTest)
+
+    trainRqa = []
+    trainLabel = []
+    for recordName in recordNameForTrain:
+        rqa, label, _ = loadRqa(recordName, 'train')
+        trainRqa = np.append(trainRqa, rqa, axis=0) if len(trainRqa) > 0 else rqa
+        trainLabel = np.append(trainLabel, label, axis=0) if len(trainLabel) > 0 else label
+
+    testRqa = []
+    testLabel = []
+    for recordName in recordNameForTest:
+        rqa, label, _ = loadRqa(recordName, 'test')
+        testRqa = np.append(testRqa, rqa, axis=0) if len(testRqa) > 0 else rqa
+        testLabel = np.append(testLabel, label, axis=0) if len(testLabel) > 0 else label
+    return trainRqa, trainLabel, testRqa, testLabel
+
+
 def getLabel(labels):
-    '''
+    """
     :param labels:
-    :return: APNEA_LABEL if number of apnea > 50%, else return NORMAL_LABEL
-    '''
+    :return: APNEA_LABEL if number of apnea > 70%, else return NORMAL_LABEL
+    """
     unique, counts = np.unique(labels, return_counts=True)
     dictUnique = dict(zip(unique, counts))
     apnea = config.APNEA_LABEL
     normal = config.NORMAL_LABEL
     minPercentApnea = config.MIN_PERCENT_APNEA
     if apnea in dictUnique.keys() and dictUnique[apnea] >= minPercentApnea * len(labels):
-        # print('label : apnea')
         return apnea
     return normal
 
@@ -91,29 +115,44 @@ def getLabel(labels):
 if __name__ == '__main__':
     print('MyUtil run main')
     recordNames = config.NAME_OF_RECORD
+    recordNameForTest = ['a03', 'a05', 'a13', 'a16', 'a19']
+    trainRqa, trainLabel, testRqa, testLabel = loadAllRqa(recordNameForTest)
+    print('done')
+
+    print('trainRqa: ', trainRqa.shape)
+    # print(trainRqa[-10:])
+    print('trainLabel: ', trainLabel.shape)
+    print('testRqa: ', testRqa.shape)
+    # print(testRqa[-10:])
+    print('testLabel: ', testLabel.shape)
+
+    unique, count = np.unique(trainLabel, return_counts=True)
+    print('trainLabel unique: ', dict(zip(unique, count)))
+    unique, count = np.unique(testLabel, return_counts=True)
+    print('testLabel unique: ', dict(zip(unique, count)))
 
     # data, label, info = readRpBinary(recordNames[2])
     # print('data:', data.shape)
     # print('label:', label.shape)
     # print('info:', info.shape)
 
-    from src import RecurrentPlot as rp
-
-    createFolder(config.PATH_RP_TRAIN_NORMAL)
-    createFolder(config.PATH_RP_TRAIN_APNEA)
-    for iData in [0, 5, 9]:
-        print('iData: ', iData)
-        listRpBinary, label, info = readRpBinary(recordNames[iData])
-
-        for i in range(10, 15, 1):
-            rpBinary = listRpBinary[i]
-            thisLabel = label[i]
-            title = 'N-' if thisLabel == config.NORMAL_LABEL else 'A-'
-            title += 'record-{}.start-{}.end-{}'.format(iData, info[i][1], info[i][2])
-            folderSave = config.PATH_RP_TRAIN_NORMAL if thisLabel == config.NORMAL_LABEL \
-                else config.PATH_RP_TRAIN_APNEA
-            pathSaveImage = folderSave + title + config.IMG_SUFFIX if config.IS_SAVE_RP_IMAGE else None
-            rp.crossRecurrencePlots(title, dataMatrixBinary=rpBinary, myTitle=title, showPlot=True,
-                                    pathSaveFigure=pathSaveImage)
-
-    print('finish code')
+    # from src import RecurrentPlot as rp
+    #
+    # createFolder(config.PATH_RP_TRAIN_NORMAL)
+    # createFolder(config.PATH_RP_TRAIN_APNEA)
+    # for iData in [0, 5, 9]:
+    #     print('iData: ', iData)
+    #     listRpBinary, label, info = readRpBinary(recordNames[iData])
+    #
+    #     for i in range(10, 15, 1):
+    #         rpBinary = listRpBinary[i]
+    #         thisLabel = label[i]
+    #         title = 'N-' if thisLabel == config.NORMAL_LABEL else 'A-'
+    #         title += 'record-{}.start-{}.end-{}'.format(iData, info[i][1], info[i][2])
+    #         folderSave = config.PATH_RP_TRAIN_NORMAL if thisLabel == config.NORMAL_LABEL \
+    #             else config.PATH_RP_TRAIN_APNEA
+    #         pathSaveImage = folderSave + title + config.IMG_SUFFIX if config.IS_SAVE_RP_IMAGE else None
+    #         rp.crossRecurrencePlots(title, dataMatrixBinary=rpBinary, myTitle=title, showPlot=True,
+    #                                 pathSaveFigure=pathSaveImage)
+    #
+    # print('finish code')
