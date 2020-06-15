@@ -31,6 +31,8 @@ from multiprocessing import Process
 # print('where: ', cc)
 
 recordNames = config.NAME_OF_RECORD
+logFile = 'duration.log.txt'
+
 for recordName in recordNames:
     start = datetime.datetime.now()
     label, _ = myUtil.getLabelAndInfo(recordName, 'test')
@@ -38,12 +40,12 @@ for recordName in recordNames:
     print('recordName: ', recordName, ' --- label unique: ', dict(zip(unique, count)))
 
     end = datetime.datetime.now()
-    logFile = 'time.txt'
-    file = open(logFile, 'w+')
-    content = "start: {}\n" \
+    file = open(logFile, 'a+')
+    content = "\n_-__recordName: {}\n" \
+              "start: {}\n" \
               "end:   {}\n" \
               "duration: {}\n" \
-              "".format(start, end, end - start)
+              "".format(recordName , start, end, end - start)
     file.write(content)
     file.close()
 

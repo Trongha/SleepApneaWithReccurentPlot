@@ -25,6 +25,7 @@ isFixedEpsilon = config.IS_FIXED_EPSILON
 
 myLambda = config.MY_LAMBDA
 
+durationLogFile = 'duration.log.txt'
 
 # ============================================================================#
 
@@ -210,13 +211,14 @@ def makeTestData(allData, allLabel, allIndexStartMinute, listIndexOfRecord):
 
 if __name__ == '__main__':
     print("Preprocess2.py run main")
-
+    #####################_Load RRI_#############################################################
     allRri, allLabel, allIndexStartMinute = loadRri(trainDataFile, trainLabelFile)
     # allRri: [[rri1, rri2, rri3, ...], [list rri of record 2], [list rri of record 3], ...]
     # allLabel: [[lb1, lb2, lb3, ...], [list label of record 2], [list label of record 3], ...]
     # allIndexStartMinute: [[0, start minute 2, start minute 2, ...],
     #                       [list index where start minute of record 2],
     #                       [list index where start minute of record 3], ...]
+    #############################################################################################
 
     numRecordLoaded = len(allRri)
     if numRecordLoaded != len(config.NAME_OF_RECORD):
@@ -261,29 +263,51 @@ if __name__ == '__main__':
               '\n_____time:     ', currentDT,
               '\n_____Duration: ', currentDT - timeStartMakeTest)
 
+        file = open(durationLogFile, 'a+')
+        content = "\n_-__recordName: {}\n" \
+                  "start: {}\n" \
+                  "end:   {}\n" \
+                  "duration: {}\n" \
+                  "".format("Make Test", timeStartMakeTest,
+                            currentDT,
+                            currentDT - timeStartMakeTest)
+        file.write(content)
+        file.close()
 
         # ============================= MAKE TRAIN DATA WITH --MULTIPLE PROCESSES-- =========================
-        # timeStartMakeTrain = datetime.datetime.now()
-        # print('start make test: ', timeStartMakeTrain)
-        # listProcesses = []
-        # for iProcess in range(0, numProcess):
-        #     listIndexOfRecord = []
-        #     for index in range(iProcess, numRecordLoaded, numProcess):
-        #         # Lấy các index thỏa mãn điều kiện: chia cho iProcess có số dư là iProcess
-        #         listIndexOfRecord.append(index)
-        #     myProc = multiprocessing.Process(target=makeTrainData,
-        #                                      args=(allData, allLabel, listIndexOfRecord))
-        #     listProcesses.append(myProc)
-        #
-        # for i, myProcess in enumerate(listProcesses):
-        #     myProcess.start()
-        # for i, myProcess in enumerate(listProcesses):
-        #     myProcess.join()
-        #
-        # currentDT = datetime.datetime.now()
-        # print('\n_____Done make Train'
-        #       '\n_____time:     ', currentDT,
-        #       '\n_____Duration: ', currentDT - timeStartMakeTrain)
+        timeStartMakeTrain = datetime.datetime.now()
+        print('start make train: ', timeStartMakeTrain)
+        listProcesses = []
+        for iProcess in range(0, numProcess):
+            listIndexOfRecord = []
+            for index in range(iProcess, numRecordLoaded, numProcess):
+                # Lấy các index thỏa mãn điều kiện: chia cho iProcess có số dư là iProcess
+                listIndexOfRecord.append(index)
+            myProc = multiprocessing.Process(target=makeTrainData,
+                                             args=(allData, allLabel, listIndexOfRecord))
+            listProcesses.append(myProc)
+
+        for i, myProcess in enumerate(listProcesses):
+            myProcess.start()
+        for i, myProcess in enumerate(listProcesses):
+            myProcess.join()
+
+        currentDT = datetime.datetime.now()
+        print('\n_____Done make Train'
+              '\n_____time:     ', currentDT,
+              '\n_____Duration: ', currentDT - timeStartMakeTrain)
+
+        file = open(durationLogFile, 'a+')
+        content = "\n_-__recordName: {}\n" \
+                  "start: {}\n" \
+                  "end:   {}\n" \
+                  "duration: {}\n" \
+                  "".format("Make Train", timeStartMakeTrain,
+                            currentDT,
+                            currentDT - timeStartMakeTrain)
+        file.write(content)
+        file.close()
+
 
         # # ============================= MAKE TRAIN DATA =========================
         # for recordIndex in range(0, numTrain):
